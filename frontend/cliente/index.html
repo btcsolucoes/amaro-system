@@ -258,10 +258,6 @@ const toast = (msg, dur=2500) => {
 function ativarModoDemo() {
   if (demoMode) return;
   demoMode = true;
-  const aviso = document.createElement('div');
-  aviso.style.cssText = 'margin-top:16px;padding:10px 14px;border:1px solid rgba(184,151,58,.35);background:rgba(255,255,255,.06);color:#F5F0E6;font-size:11px;letter-spacing:1px;line-height:1.6;border-radius:6px;max-width:420px;margin-left:auto;margin-right:auto';
-  aviso.innerHTML = 'Modo demonstracao ativo.<br>Cardapio pronto para apresentacao.';
-  document.querySelector('.hero-inner').appendChild(aviso);
 }
 
 // ── Carregar cardápio ─────────────────────────────
@@ -538,7 +534,6 @@ async function selecionarPagamento(metodo, total) {
           <div class="pix-valor">${fmt(total)}</div>
           <div class="pix-key">${codigoPix}</div>
           <button class="pix-copy" onclick="copiarPix('${codigoPix}')">Copiar codigo PIX</button>
-          <div class="pix-note">Fluxo demonstrativo para apresentacao.</div>
         </div>
         <button class="btn-simular" onclick="simularPagamento('pix')">Confirmar Pagamento</button>
         <button class="btn-cancelar" onclick="abrirModalPagamento(${total})">Voltar</button>`;

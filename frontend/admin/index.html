@@ -351,7 +351,7 @@ function irPara(pag) {
   const titles = {dashboard:'Dashboard',pedidos:'Pedidos',cardapio:'Gestão do Cardápio',mesas:'Mesas & QR Code'};
   document.getElementById('topbarTitle').textContent = titles[pag];
   const actMap = {
-    cardapio: demoMode ? `<span style="font-size:11px;color:var(--txt2);font-weight:700;letter-spacing:1px;text-transform:uppercase">Modo demonstracao</span>` : `<button class="btn-action" onclick="abrirModalPrato()">+ Novo Prato</button>`,
+    cardapio: `<button class="btn-action" onclick="abrirModalPrato()">+ Novo Prato</button>`,
     pedidos: '',dashboard:'',mesas:''
   };
   document.getElementById('topbarActions').innerHTML = actMap[pag]||'';
@@ -531,7 +531,7 @@ async function renderCardapio() {
     <div class="table-box" style="margin-bottom:16px">
       <div class="table-header">
         <span class="table-title">${cat.nome}</span>
-        ${demoMode ? '<span style="font-size:11px;color:var(--txt2);font-weight:700;letter-spacing:1px;text-transform:uppercase">Visualizacao</span>' : `<button onclick="abrirModalPrato(${cat.id})" style="padding:6px 14px;background:var(--gd);color:var(--gold2);border:none;border-radius:4px;font-size:11px;cursor:pointer;font-weight:700">+ Prato</button>`}
+        <button onclick="abrirModalPrato(${cat.id})" style="padding:6px 14px;background:var(--gd);color:var(--gold2);border:none;border-radius:4px;font-size:11px;cursor:pointer;font-weight:700">+ Prato</button>
       </div>
       <table>
         <thead><tr><th>Foto</th><th>Nome</th><th>Descrição</th><th>Preço</th><th>Disponível</th><th>Ações</th></tr></thead>
@@ -543,10 +543,8 @@ async function renderCardapio() {
             <td><strong>${fmt(p.preco)}</strong></td>
             <td><span class="badge ${p.disponivel?'badge-pago':'badge-cancelado'}">${p.disponivel?'Sim':'Não'}</span></td>
             <td style="display:flex;gap:6px;padding:12px 16px">
-              ${demoMode
-                ? '<span style="font-size:11px;color:var(--txt2);font-weight:700;text-transform:uppercase">Demo</span>'
-                : `<button onclick="editarPrato(${p.id})" style="padding:5px 12px;background:var(--gd2);color:var(--gold2);border:none;border-radius:4px;font-size:11px;cursor:pointer">Editar</button>
-              <button onclick="deletarPrato(${p.id})" style="padding:5px 12px;background:#c53030;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer">Remover</button>`}
+              <button onclick="editarPrato(${p.id})" style="padding:5px 12px;background:var(--gd2);color:var(--gold2);border:none;border-radius:4px;font-size:11px;cursor:pointer">Editar</button>
+              <button onclick="deletarPrato(${p.id})" style="padding:5px 12px;background:#c53030;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer">Remover</button>
             </td>
           </tr>`).join('')||'<tr><td colspan="6" style="text-align:center;padding:20px;color:#999;font-size:13px">Nenhum prato nesta categoria</td></tr>'}
         </tbody>
@@ -556,7 +554,7 @@ async function renderCardapio() {
 
 async function abrirModalPrato(catId=null) {
   if (demoMode) {
-    toast('Edicao liberada quando o backend do Railway estiver conectado', true);
+    toast('Acao indisponivel no momento.', true);
     return;
   }
   const cats = await api('/cardapio/admin/categorias');
@@ -612,7 +610,7 @@ function previewFoto(input) {
 
 async function salvarPrato() {
   if (demoMode) {
-    toast('Edicao liberada quando o backend do Railway estiver conectado', true);
+    toast('Acao indisponivel no momento.', true);
     return;
   }
   const fd = new FormData();
@@ -630,7 +628,7 @@ async function salvarPrato() {
 
 async function editarPrato(id) {
   if (demoMode) {
-    toast('Edicao liberada quando o backend do Railway estiver conectado', true);
+    toast('Acao indisponivel no momento.', true);
     return;
   }
   const [prato, cats] = await Promise.all([api('/cardapio/pratos/'+id), api('/cardapio/admin/categorias')]);
@@ -685,7 +683,7 @@ function previewFoto2(input) {
 
 async function atualizarPrato(id) {
   if (demoMode) {
-    toast('Edicao liberada quando o backend do Railway estiver conectado', true);
+    toast('Acao indisponivel no momento.', true);
     return;
   }
   const fd = new FormData();
@@ -704,7 +702,7 @@ async function atualizarPrato(id) {
 
 async function deletarPrato(id) {
   if (demoMode) {
-    toast('Edicao liberada quando o backend do Railway estiver conectado', true);
+    toast('Acao indisponivel no momento.', true);
     return;
   }
   if (!confirm('Remover este prato?')) return;
