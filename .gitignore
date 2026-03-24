@@ -4,4 +4,3 @@ backend/.env
 backend/amaro.db
 backend/amaro.db-shm
 backend/amaro.db-wal
-{backend/

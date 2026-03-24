@@ -1,5 +1,5 @@
 window.AMARO_SETTINGS = {
-  // backendBase: 'https://seu-backend.onrender.com',
-  // appBase: '/amaro-system',
-  // frontendBaseUrl: 'https://seuusuario.github.io/amaro-system'
+  // backendBase: 'https://seu-backend.up.railway.app',
+  appBase: '/amaro-system',
+  frontendBaseUrl: 'https://btcsolucoes.github.io/amaro-system'
 };
