@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amaro Cafe - Sistema</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Montserrat',sans-serif;background:#1A2118;min-height:100vh;display:flex;align-items:center;justify-content:center;}
+.box{text-align:center;padding:40px 20px;}
+.logo{font-family:'Playfair Display',serif;font-size:56px;font-weight:900;color:transparent;-webkit-text-stroke:1.5px #B8973A;letter-spacing:4px;margin-bottom:6px;}
+.sub{font-size:11px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:40px;}
+.links{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;}
+a.btn{display:block;padding:16px 32px;border-radius:6px;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:1px;transition:transform .2s;}
+a.btn:hover{transform:translateY(-2px);}
+.btn-cliente{background:#B8973A;color:#fff;}
+.btn-admin{background:transparent;border:1.5px solid rgba(184,151,58,.4);color:#B8973A;}
+.hint{font-size:11px;color:rgba(255,255,255,.3);margin-top:30px;line-height:1.8;}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">AMARO</div>
+  <div class="sub">Cafe & Gastronomia - Sistema</div>
+  <div class="links">
+    <a href="./cliente/" class="btn btn-cliente" id="linkCliente">Cardapio do Cliente</a>
+    <a href="./admin/" class="btn btn-admin" id="linkAdmin">Painel Admin</a>
+  </div>
+  <div class="hint">
+    Admin: admin@amarocafe.com.br / amaro@2024<br>
+    Cliente: <span id="clienteHint">/cliente/?mesa=1</span> (troque o numero da mesa)
+  </div>
+</div>
+<script src="./site-config.js"></script>
+<script src="./app-config.js"></script>
+<script>
+const config = window.AMARO_CONFIG;
+const clienteUrl = config.clienteUrl(1);
+const parsedClienteUrl = new URL(clienteUrl);
+document.getElementById('linkCliente').href = clienteUrl;
+document.getElementById('linkAdmin').href = config.adminUrl();
+document.getElementById('clienteHint').textContent = `${parsedClienteUrl.pathname}${parsedClienteUrl.search}`;
+</script>
+</body>
+</html>

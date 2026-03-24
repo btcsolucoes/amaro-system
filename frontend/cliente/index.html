@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Amaro Café — Cardápio</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#B8973A;--gold2:#D4AF5A;
+  --gd:#1A2118;--gd2:#2C3B2A;
+  --cream:#F5F0E6;--cream2:#EDE4D0;
+  --white:#fff;--txt:#1a1a1a;--txt2:#777;
+  --red:#e53e3e;--green:#2d6a4f;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Montserrat',sans-serif;background:var(--cream);color:var(--txt);overflow-x:hidden;}
+
+/* HERO */
+.hero{background:var(--gd);padding:52px 20px 40px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;width:500px;height:500px;border-radius:50%;border:1px solid rgba(184,151,58,.12);top:50%;left:50%;transform:translate(-50%,-50%);}
+.hero::after{content:'';position:absolute;width:320px;height:320px;border-radius:50%;border:1px solid rgba(184,151,58,.2);top:50%;left:50%;transform:translate(-50%,-50%);}
+.hero-inner{position:relative;z-index:2;}
+.logo-g{display:grid;grid-template-columns:1fr 1fr;width:72px;margin:0 auto 4px;}
+.logo-g span{font-family:'Playfair Display',serif;font-size:48px;font-weight:900;color:transparent;-webkit-text-stroke:1.5px var(--gold);line-height:.88;letter-spacing:-2px;}
+.hero-sub{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:14px;}
+.divl{display:flex;align-items:center;gap:10px;width:220px;max-width:90vw;margin:0 auto 14px;}
+.dl{flex:1;height:1px;background:linear-gradient(to right,transparent,var(--gold));}
+.dr{flex:1;height:1px;background:linear-gradient(to left,transparent,var(--gold));}
+.gem{width:6px;height:6px;background:var(--gold);transform:rotate(45deg);}
+.hero-title{font-family:'Playfair Display',serif;font-size:clamp(38px,10vw,64px);font-weight:900;color:#fff;line-height:.92;letter-spacing:-1px;margin-bottom:6px;}
+.hero-title em{color:var(--gold2);font-style:italic;}
+.mesa-badge{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(184,151,58,.35);padding:6px 16px;border-radius:2px;margin-top:14px;}
+.mesa-badge span{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:700;}
+.mesa-badge strong{font-size:14px;color:#fff;font-weight:600;}
+
+/* NAV CATEGORIAS */
+.cat-nav{position:sticky;top:0;z-index:50;background:var(--gd);border-bottom:1px solid rgba(184,151,58,.18);overflow-x:auto;scrollbar-width:none;}
+.cat-nav::-webkit-scrollbar{display:none;}
+.cat-nav-inner{display:flex;min-width:max-content;padding:0 12px;max-width:960px;margin:0 auto;}
+.cat-btn{padding:14px 16px;font-size:9px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,.4);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.cat-btn:hover,.cat-btn.on{color:var(--gold);border-bottom-color:var(--gold);}
+
+/* MAIN */
+.main{max-width:960px;margin:0 auto;padding:0 16px 120px;}
+
+/* SECTION */
+.sec{padding-top:56px;}
+.sec-head{display:flex;align-items:flex-end;gap:16px;margin-bottom:28px;}
+.sec-head::after{content:'';flex:1;height:1px;background:linear-gradient(to right,var(--gold),transparent);margin-bottom:4px;}
+.sec-tag{display:block;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:3px;}
+.sec-title{font-family:'Playfair Display',serif;font-size:clamp(24px,5vw,36px);font-weight:700;color:var(--gd2);line-height:1;white-space:nowrap;}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
+
+/* CARD PRATO */
+.card{background:#fff;border-radius:6px;overflow:hidden;border:1px solid rgba(0,0,0,.07);box-shadow:0 2px 10px rgba(0,0,0,.05);display:flex;flex-direction:column;transition:transform .25s,box-shadow .25s;cursor:pointer;}
+.card:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(0,0,0,.1);}
+.card.indisponivel{opacity:.5;pointer-events:none;}
+.card-img{height:180px;overflow:hidden;background:var(--gd);position:relative;}
+.card-img img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s;}
+.card:hover .card-img img{transform:scale(1.05);}
+.card-img-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:32px;background:linear-gradient(135deg,var(--gd) 0%,var(--gd2) 100%);}
+.card-badge{position:absolute;top:10px;left:10px;background:rgba(21,28,20,.85);border:1px solid rgba(184,151,58,.3);color:var(--gold);font-size:6.5px;letter-spacing:2px;text-transform:uppercase;padding:3px 8px;font-weight:700;}
+.card-body{padding:14px 16px 16px;flex:1;display:flex;flex-direction:column;}
+.card-name{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--gd2);margin-bottom:6px;line-height:1.25;}
+.card-desc{font-size:11px;color:var(--txt2);line-height:1.7;flex:1;margin-bottom:12px;}
+.card-foot{display:flex;align-items:center;justify-content:space-between;}
+.card-price{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--gd2);}
+.card-price sup{font-family:'Montserrat',sans-serif;font-size:10px;color:var(--txt2);font-weight:400;}
+.btn-add{width:34px;height:34px;border-radius:50%;background:var(--gd);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0;}
+.btn-add:hover{background:var(--gold);}
+.btn-add svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;}
+
+/* BEBIDAS — lista horizontal */
+.bebidas-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
+.bebida-card{background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:6px;padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:transform .2s,box-shadow .2s;}
+.bebida-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.08);}
+.bebida-icon{width:40px;height:40px;background:var(--gd);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.bebida-name{font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:var(--gd2);margin-bottom:3px;}
+.bebida-price{font-size:12px;font-weight:700;color:var(--gold);}
+.bebida-add{margin-left:auto;width:30px;height:30px;border-radius:50%;background:var(--gd);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.bebida-add svg{width:14px;height:14px;fill:none;stroke:#fff;stroke-width:2;}
+
+/* CARRINHO FAB */
+.cart-fab{position:fixed;bottom:24px;right:20px;z-index:200;background:var(--gd);border:1px solid rgba(184,151,58,.4);border-radius:50px;padding:14px 22px;display:flex;align-items:center;gap:10px;cursor:pointer;box-shadow:0 8px 32px rgba(0,0,0,.25);transition:transform .2s;color:#fff;}
+.cart-fab:hover{transform:translateY(-2px);}
+.cart-fab-icon{font-size:20px;}
+.cart-fab-count{background:var(--gold);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+.cart-fab-total{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--gold2);}
+.cart-fab.hidden{display:none;}
+
+/* DRAWER CARRINHO */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;opacity:0;pointer-events:none;transition:opacity .3s;}
+.drawer-overlay.open{opacity:1;pointer-events:all;}
+.drawer{position:fixed;bottom:0;left:0;right:0;max-height:90vh;background:#fff;z-index:301;border-radius:16px 16px 0 0;transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;}
+.drawer.open{transform:translateY(0);}
+.drawer-handle{width:40px;height:4px;background:#ddd;border-radius:2px;margin:12px auto 0;}
+.drawer-header{padding:16px 20px;border-bottom:1px solid var(--cream2);display:flex;align-items:center;justify-content:space-between;}
+.drawer-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--gd2);}
+.drawer-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--txt2);padding:4px;}
+.drawer-body{overflow-y:auto;flex:1;padding:16px 20px;}
+.cart-item{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--cream2);}
+.cart-item:last-child{border-bottom:none;}
+.cart-item-img{width:52px;height:52px;border-radius:6px;object-fit:cover;background:var(--cream2);flex-shrink:0;}
+.cart-item-info{flex:1;}
+.cart-item-name{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--gd2);}
+.cart-item-price{font-size:12px;color:var(--txt2);margin-top:2px;}
+.cart-item-obs{font-size:10px;color:var(--txt2);margin-top:3px;font-style:italic;}
+.qty-ctrl{display:flex;align-items:center;gap:8px;}
+.qty-btn{width:28px;height:28px;border-radius:50%;border:1px solid var(--cream2);background:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .2s;}
+.qty-btn:hover{background:var(--cream2);}
+.qty-val{font-weight:700;font-size:15px;min-width:20px;text-align:center;}
+.cart-item-sub{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--gd2);min-width:70px;text-align:right;}
+.cart-empty{text-align:center;padding:40px 20px;}
+.cart-empty-icon{font-size:48px;margin-bottom:12px;}
+.cart-empty p{color:var(--txt2);font-size:13px;}
+.drawer-footer{padding:16px 20px;border-top:1px solid var(--cream2);}
+.obs-input{width:100%;border:1px solid var(--cream2);border-radius:6px;padding:10px 14px;font-family:'Montserrat',sans-serif;font-size:12px;resize:none;margin-bottom:14px;background:var(--cream);}
+.cart-total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.cart-total-label{font-size:12px;color:var(--txt2);letter-spacing:1px;text-transform:uppercase;}
+.cart-total-val{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--gd2);}
+.btn-pedir{width:100%;padding:16px;background:var(--gd);color:var(--gold2);font-family:'Playfair Display',serif;font-size:17px;font-weight:700;border:none;border-radius:6px;cursor:pointer;letter-spacing:1px;transition:background .2s;}
+.btn-pedir:hover{background:var(--gd2);}
+.btn-pedir:disabled{opacity:.5;cursor:not-allowed;}
+
+/* MODAL PAGAMENTO */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:440px;max-height:90vh;overflow-y:auto;padding:28px;}
+.modal-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--gd2);margin-bottom:6px;}
+.modal-sub{font-size:12px;color:var(--txt2);margin-bottom:22px;}
+.pgto-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.pgto-btn{padding:16px 10px;border:2px solid var(--cream2);border-radius:8px;background:none;cursor:pointer;text-align:center;transition:all .2s;}
+.pgto-btn:hover,.pgto-btn.selected{border-color:var(--gold);background:rgba(184,151,58,.06);}
+.pgto-btn-icon{font-size:24px;margin-bottom:4px;}
+.pgto-btn-label{font-size:11px;font-weight:700;color:var(--gd2);letter-spacing:1px;text-transform:uppercase;}
+
+/* PIX */
+.pix-box{background:var(--cream);border-radius:8px;padding:20px;text-align:center;margin-bottom:16px;}
+.pix-valor{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--gd2);margin-bottom:8px;}
+.pix-key{font-size:10px;background:#fff;border:1px dashed var(--gold);padding:10px 14px;border-radius:6px;word-break:break-all;text-align:left;margin-bottom:10px;color:var(--txt2);font-family:monospace;}
+.pix-copy{width:100%;padding:11px;background:var(--gd2);color:var(--gold2);border:none;border-radius:6px;font-weight:700;font-size:13px;cursor:pointer;margin-bottom:8px;letter-spacing:1px;}
+.pix-note{font-size:11px;color:var(--txt2);text-align:center;}
+
+/* BOTÕES MODAL */
+.btn-simular{width:100%;padding:14px;background:var(--gold);color:#fff;border:none;border-radius:6px;font-weight:700;font-size:14px;cursor:pointer;margin-top:8px;letter-spacing:1px;}
+.btn-cancelar{width:100%;padding:12px;background:none;border:1px solid var(--cream2);border-radius:6px;font-size:13px;cursor:pointer;color:var(--txt2);margin-top:8px;}
+
+/* SUCESSO */
+.sucesso-box{text-align:center;padding:20px 0;}
+.sucesso-icon{font-size:60px;margin-bottom:16px;}
+.sucesso-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--green);margin-bottom:8px;}
+.sucesso-sub{font-size:13px;color:var(--txt2);line-height:1.7;}
+.sucesso-num{display:inline-block;background:var(--gd);color:var(--gold2);padding:8px 20px;border-radius:4px;font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin:16px 0;}
+
+/* TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--gd);color:var(--gold2);padding:10px 22px;border-radius:50px;font-size:13px;font-weight:600;z-index:500;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* LOADING */
+.loading{display:flex;align-items:center;justify-content:center;min-height:300px;flex-direction:column;gap:16px;}
+.spin{width:40px;height:40px;border:3px solid rgba(184,151,58,.2);border-top-color:var(--gold);border-radius:50%;animation:sp .8s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.loading p{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--txt2);}
+
+@media(max-width:600px){
+  .grid{grid-template-columns:1fr;}
+  .bebidas-list{grid-template-columns:1fr 1fr;}
+  .pgto-options{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="logo-g"><span>M</span><span>E</span><span>N</span><span>U</span></div>
+    <p class="hero-sub">Cardápio Digital</p>
+    <div class="divl"><div class="dl"></div><div class="gem"></div><div class="dr"></div></div>
+    <h1 class="hero-title">Amaro<br><em>Café</em></h1>
+    <div class="mesa-badge">
+      <span>Mesa</span>
+      <strong id="mesaNum">—</strong>
+    </div>
+  </div>
+</div>
+
+<nav class="cat-nav"><div class="cat-nav-inner" id="catNav"></div></nav>
+
+<main class="main" id="mainContent">
+  <div class="loading"><div class="spin"></div><p>Carregando cardápio...</p></div>
+</main>
+
+<!-- CARRINHO FAB -->
+<div class="cart-fab hidden" id="cartFab">
+  <span class="cart-fab-icon">🛒</span>
+  <span class="cart-fab-count" id="cartCount">0</span>
+  <span class="cart-fab-total" id="cartTotal">R$ 0,00</span>
+</div>
+
+<!-- DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-header">
+    <span class="drawer-title">Seu Pedido</span>
+    <button class="drawer-close" id="drawerClose">✕</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-footer">
+    <textarea class="obs-input" id="obsGeral" rows="2" placeholder="Alguma observação geral? (opcional)"></textarea>
+    <div class="cart-total-row">
+      <span class="cart-total-label">Total</span>
+      <span class="cart-total-val" id="drawerTotal">R$ 0,00</span>
+    </div>
+    <button class="btn-pedir" id="btnPedir">Ir para Pagamento</button>
+  </div>
+</div>
+
+<!-- MODAL PAGAMENTO -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="../site-config.js"></script>
+<script src="../app-config.js"></script>
+<script>
+const CONFIG = window.AMARO_CONFIG;
+const API = CONFIG.apiBase;
+let cardapio = [];
+let carrinho = [];
+let mesaNumero = 1;
+let pedidoId = null;
+
+// ── Pegar mesa da URL ─────────────────────────────
+const urlParams = new URLSearchParams(window.location.search);
+mesaNumero = parseInt(urlParams.get('mesa')) || 1;
+document.getElementById('mesaNum').textContent = mesaNumero;
+
+// ── Utilitários ───────────────────────────────────
+const fmt = v => 'R$ ' + Number(v).toFixed(2).replace('.',',');
+const toast = (msg, dur=2500) => {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), dur);
+};
+
+// ── Carregar cardápio ─────────────────────────────
+async function carregarCardapio() {
+  try {
+    const r = await fetch(`${API}/cardapio`);
+    cardapio = await r.json();
+    renderCardapio();
+  } catch(e) {
+    document.getElementById('mainContent').innerHTML =
+      '<div style="text-align:center;padding:60px 20px;color:#999">Erro ao carregar cardápio.<br>Verifique a conexão.</div>';
+  }
+}
+
+function renderCardapio() {
+  const nav = document.getElementById('catNav');
+  const main = document.getElementById('mainContent');
+  nav.innerHTML = '';
+  main.innerHTML = '';
+
+  const tagMap = {
+    'Entradinhas':'Para Começar','Executivos':'Pratos Principais',
+    'Tapiocas':'Nordeste na Mesa','Cuscuz':'Tradição Nordestina',
+    'Salgados':'Petiscos','Bebidas':'Para Acompanhar'
+  };
+  const emojiMap = {'Bebidas':'🥤','Salgados':'🍗','Tapiocas':'🫓','Cuscuz':'🌽'};
+
+  cardapio.forEach((cat, i) => {
+    // Nav
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn' + (i===0?' on':'');
+    btn.textContent = cat.nome;
+    btn.onclick = () => {
+      document.getElementById('sec-'+cat.id)?.scrollIntoView({behavior:'smooth',block:'start'});
+    };
+    nav.appendChild(btn);
+
+    // Seção
+    const sec = document.createElement('section');
+    sec.className = 'sec';
+    sec.id = 'sec-'+cat.id;
+    sec.innerHTML = `
+      <div class="sec-head">
+        <div>
+          <span class="sec-tag">${tagMap[cat.nome]||''}</span>
+          <h2 class="sec-title">${cat.nome}</h2>
+        </div>
+      </div>`;
+
+    if (cat.nome === 'Bebidas') {
+      const grid = document.createElement('div');
+      grid.className = 'bebidas-list';
+      cat.pratos.forEach(p => grid.appendChild(criarBebidaCard(p)));
+      sec.appendChild(grid);
+    } else {
+      const grid = document.createElement('div');
+      grid.className = 'grid';
+      cat.pratos.forEach(p => grid.appendChild(criarCard(p, cat.nome)));
+      sec.appendChild(grid);
+    }
+    main.appendChild(sec);
+  });
+
+  // Observer para nav ativa
+  const sections = document.querySelectorAll('.sec');
+  const btns = document.querySelectorAll('.cat-btn');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const id = e.target.id.replace('sec-','');
+        btns.forEach((b,i) => b.classList.toggle('on', cardapio[i]?.id == id));
+      }
+    });
+  }, {rootMargin:'-40% 0px -55% 0px'});
+  sections.forEach(s => obs.observe(s));
+}
+
+function criarCard(prato, catNome) {
+  const div = document.createElement('div');
+  div.className = 'card' + (prato.disponivel?'':' indisponivel');
+  div.innerHTML = `
+    <div class="card-img">
+      ${prato.foto_url
+        ? `<img src="${prato.foto_url}" alt="${prato.nome}" loading="lazy">`
+        : `<div class="card-img-placeholder">🍽️</div>`}
+      <div class="card-badge">${catNome}</div>
+    </div>
+    <div class="card-body">
+      <div class="card-name">${prato.nome}</div>
+      <div class="card-desc">${prato.descricao||''}</div>
+      <div class="card-foot">
+        <div class="card-price"><sup>R$&nbsp;</sup>${Number(prato.preco).toFixed(2).replace('.',',')}</div>
+        <button class="btn-add" title="Adicionar ao carrinho">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+    </div>`;
+  div.querySelector('.btn-add').onclick = (e) => { e.stopPropagation(); adicionarAoCarrinho(prato); };
+  div.onclick = () => adicionarAoCarrinho(prato);
+  return div;
+}
+
+function criarBebidaCard(prato) {
+  const emojiMap = {'H2O':'🍋','Guaraná':'🥤','Coca Cola Lata Zero':'🖤','Coca Cola':'🥤'};
+  const icon = Object.entries(emojiMap).find(([k]) => prato.nome.includes(k))?.[1] || '🥤';
+  const div = document.createElement('div');
+  div.className = 'bebida-card';
+  div.innerHTML = `
+    <div class="bebida-icon">${icon}</div>
+    <div>
+      <div class="bebida-name">${prato.nome}</div>
+      <div class="bebida-price">${fmt(prato.preco)}</div>
+    </div>
+    <button class="bebida-add">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>`;
+  div.onclick = () => adicionarAoCarrinho(prato);
+  return div;
+}
+
+// ── Carrinho ──────────────────────────────────────
+function adicionarAoCarrinho(prato) {
+  const idx = carrinho.findIndex(i => i.prato_id === prato.id);
+  if (idx >= 0) {
+    carrinho[idx].quantidade++;
+    carrinho[idx].subtotal = carrinho[idx].quantidade * prato.preco;
+  } else {
+    carrinho.push({ prato_id: prato.id, nome: prato.nome, preco: prato.preco, quantidade: 1, subtotal: prato.preco, foto: prato.foto_url });
+  }
+  atualizarFAB();
+  toast(`✓ ${prato.nome} adicionado`);
+}
+
+function removerDoCarrinho(pratoId) {
+  const idx = carrinho.findIndex(i => i.prato_id === pratoId);
+  if (idx < 0) return;
+  if (carrinho[idx].quantidade > 1) {
+    carrinho[idx].quantidade--;
+    carrinho[idx].subtotal = carrinho[idx].quantidade * carrinho[idx].preco;
+  } else {
+    carrinho.splice(idx, 1);
+  }
+  atualizarFAB();
+  renderDrawer();
+}
+
+function totalCarrinho() {
+  return carrinho.reduce((s, i) => s + i.subtotal, 0);
+}
+
+function atualizarFAB() {
+  const fab = document.getElementById('cartFab');
+  const total = totalCarrinho();
+  const qtd = carrinho.reduce((s,i) => s+i.quantidade, 0);
+  if (qtd === 0) { fab.classList.add('hidden'); return; }
+  fab.classList.remove('hidden');
+  document.getElementById('cartCount').textContent = qtd;
+  document.getElementById('cartTotal').textContent = fmt(total);
+}
+
+// ── Drawer ────────────────────────────────────────
+document.getElementById('cartFab').onclick = abrirDrawer;
+document.getElementById('drawerOverlay').onclick = fecharDrawer;
+document.getElementById('drawerClose').onclick = fecharDrawer;
+
+function abrirDrawer() {
+  renderDrawer();
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.getElementById('drawer').classList.add('open');
+}
+
+function fecharDrawer() {
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.getElementById('drawer').classList.remove('open');
+}
+
+function renderDrawer() {
+  const body = document.getElementById('drawerBody');
+  const totalEl = document.getElementById('drawerTotal');
+  totalEl.textContent = fmt(totalCarrinho());
+
+  if (carrinho.length === 0) {
+    body.innerHTML = `<div class="cart-empty"><div class="cart-empty-icon">🛒</div><p>Seu carrinho está vazio.<br>Adicione itens do cardápio.</p></div>`;
+    return;
+  }
+
+  body.innerHTML = carrinho.map(item => `
+    <div class="cart-item">
+      ${item.foto ? `<img class="cart-item-img" src="${item.foto}" alt="${item.nome}">` : '<div class="cart-item-img" style="display:flex;align-items:center;justify-content:center;font-size:20px">🍽️</div>'}
+      <div class="cart-item-info">
+        <div class="cart-item-name">${item.nome}</div>
+        <div class="cart-item-price">${fmt(item.preco)} un.</div>
+      </div>
+      <div class="qty-ctrl">
+        <button class="qty-btn" onclick="removerDoCarrinho(${item.prato_id})">−</button>
+        <span class="qty-val">${item.quantidade}</span>
+        <button class="qty-btn" onclick="adicionarAoCarrinho({id:${item.prato_id},nome:'${item.nome.replace(/'/g,"\\'")}',preco:${item.preco},foto_url:'${item.foto||''}',disponivel:1})">+</button>
+      </div>
+      <div class="cart-item-sub">${fmt(item.subtotal)}</div>
+    </div>`).join('');
+}
+
+document.getElementById('btnPedir').onclick = async () => {
+  if (carrinho.length === 0) return;
+  const obs = document.getElementById('obsGeral').value;
+  fecharDrawer();
+  await criarPedido(obs);
+};
+
+// ── Pedido + Pagamento ────────────────────────────
+async function criarPedido(obs) {
+  try {
+    const r = await fetch(`${API}/pedidos`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        mesa_numero: mesaNumero,
+        itens: carrinho.map(i => ({ prato_id: i.prato_id, quantidade: i.quantidade })),
+        observacao: obs
+      })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.erro);
+    pedidoId = data.pedido_id;
+    abrirModalPagamento(data.total);
+  } catch(e) {
+    toast('❌ Erro ao criar pedido: ' + e.message, 4000);
+  }
+}
+
+function abrirModalPagamento(total) {
+  const overlay = document.getElementById('modalOverlay');
+  const content = document.getElementById('modalContent');
+  overlay.classList.add('open');
+
+  content.innerHTML = `
+    <div class="modal-title">Pagamento</div>
+    <div class="modal-sub">Pedido #${pedidoId} • Mesa ${mesaNumero}</div>
+    <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--gd2);margin-bottom:20px">${fmt(total)}</div>
+    <div class="pgto-options">
+      <button class="pgto-btn" onclick="selecionarPagamento('pix',${total})">
+        <div class="pgto-btn-icon">📱</div>
+        <div class="pgto-btn-label">PIX</div>
+      </button>
+      <button class="pgto-btn" onclick="selecionarPagamento('cartao',${total})">
+        <div class="pgto-btn-icon">💳</div>
+        <div class="pgto-btn-label">Cartão</div>
+      </button>
+    </div>
+    <button class="btn-simular" onclick="simularPagamento('demo')">⚡ Simular Pagamento (Demo)</button>
+    <button class="btn-cancelar" onclick="fecharModal()">Cancelar pedido</button>`;
+}
+
+async function selecionarPagamento(metodo, total) {
+  if (metodo === 'pix') {
+    const content = document.getElementById('modalContent');
+    content.innerHTML = `<div class="loading"><div class="spin"></div><p>Gerando PIX...</p></div>`;
+    try {
+      const r = await fetch(`${API}/pagamento/pix`, {
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({pedido_id: pedidoId})
+      });
+      const data = await r.json();
+      content.innerHTML = `
+        <div class="modal-title">Pague com PIX</div>
+        <div class="modal-sub">Pedido #${pedidoId} • ${fmt(total)}</div>
+        <div class="pix-box">
+          <div class="pix-valor">${fmt(total)}</div>
+          ${data.qr_code_base64 ? `<img src="data:image/png;base64,${data.qr_code_base64}" style="width:180px;height:180px;margin:10px auto;display:block;border-radius:8px">` : ''}
+          <div class="pix-key">${data.pix_copia_cola||'Chave gerada — copie acima'}</div>
+          <button class="pix-copy" onclick="copiarPix('${(data.pix_copia_cola||'').replace(/'/g,"\\'")}')">📋 Copiar código PIX</button>
+          <div class="pix-note">Após pagar, aguarde a confirmação automática</div>
+        </div>
+        <button class="btn-simular" onclick="simularPagamento('pix')">✅ Confirmar Pagamento</button>
+        <button class="btn-cancelar" onclick="abrirModalPagamento(${total})">← Voltar</button>`;
+    } catch(e) {
+      toast('Erro ao gerar PIX', 3000);
+    }
+  } else {
+    // Cartão — simular ou integrar gateway
+    simularPagamento('cartao');
+  }
+}
+
+function copiarPix(chave) {
+  navigator.clipboard.writeText(chave).then(() => toast('✓ Código PIX copiado!'));
+}
+
+async function simularPagamento(metodo) {
+  const content = document.getElementById('modalContent');
+  content.innerHTML = `<div class="loading"><div class="spin"></div><p>Processando...</p></div>`;
+  try {
+    await fetch(`${API}/pagamento/simular`, {
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({pedido_id: pedidoId, metodo})
+    });
+    exibirSucesso();
+  } catch(e) {
+    toast('Erro ao confirmar pagamento', 3000);
+  }
+}
+
+function exibirSucesso() {
+  const content = document.getElementById('modalContent');
+  content.innerHTML = `
+    <div class="sucesso-box">
+      <div class="sucesso-icon">✅</div>
+      <div class="sucesso-title">Pedido Confirmado!</div>
+      <div class="sucesso-num">#${pedidoId}</div>
+      <div class="sucesso-sub">Seu pedido foi recebido com sucesso.<br>Em breve chegará à sua mesa!</div>
+      <button class="btn-pedir" style="margin-top:24px" onclick="location.reload()">Fazer Novo Pedido</button>
+    </div>`;
+  carrinho = [];
+  atualizarFAB();
+}
+
+function fecharModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+document.getElementById('modalOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('modalOverlay')) fecharModal();
+});
+
+// ── Init ──────────────────────────────────────────
+carregarCardapio();
+</script>
+</body>
+</html>

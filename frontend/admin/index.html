@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amaro Café — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --gold:#B8973A;--gold2:#D4AF5A;
+  --gd:#1A2118;--gd2:#2C3B2A;
+  --cream:#F5F0E6;--cream2:#EDE4D0;
+  --white:#fff;--txt:#1a1a1a;--txt2:#666;
+  --sidebar:220px;--green:#2d6a4f;--red:#c53030;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Montserrat',sans-serif;background:var(--cream);color:var(--txt);}
+
+/* ─── LOGIN ─── */
+#loginPage{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--gd);}
+.login-box{background:#fff;border-radius:12px;padding:40px 36px;width:360px;max-width:90vw;text-align:center;}
+.login-logo{font-family:'Playfair Display',serif;font-size:36px;font-weight:900;color:transparent;-webkit-text-stroke:1px var(--gold);letter-spacing:4px;margin-bottom:6px;}
+.login-sub{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--txt2);margin-bottom:28px;}
+.form-group{margin-bottom:16px;text-align:left;}
+.form-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--txt2);display:block;margin-bottom:6px;}
+.form-input{width:100%;padding:11px 14px;border:1.5px solid var(--cream2);border-radius:6px;font-family:'Montserrat',sans-serif;font-size:14px;transition:border-color .2s;}
+.form-input:focus{outline:none;border-color:var(--gold);}
+.btn-login{width:100%;padding:13px;background:var(--gd);color:var(--gold2);border:none;border-radius:6px;font-family:'Playfair Display',serif;font-size:17px;font-weight:700;cursor:pointer;letter-spacing:1px;margin-top:8px;}
+.btn-login:hover{background:var(--gd2);}
+.login-err{color:var(--red);font-size:12px;margin-top:10px;}
+
+/* ─── LAYOUT ADMIN ─── */
+#adminPage{display:none;min-height:100vh;}
+.layout{display:flex;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar);background:var(--gd);position:fixed;top:0;left:0;height:100vh;display:flex;flex-direction:column;z-index:100;}
+.sidebar-logo{padding:24px 20px 16px;border-bottom:1px solid rgba(184,151,58,.15);}
+.sidebar-logo-text{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:transparent;-webkit-text-stroke:1px var(--gold);letter-spacing:2px;}
+.sidebar-logo-sub{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-top:2px;}
+.sidebar-nav{padding:16px 0;flex:1;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;color:rgba(255,255,255,.5);cursor:pointer;transition:all .2s;font-size:12px;font-weight:600;letter-spacing:.5px;border-left:3px solid transparent;}
+.nav-item:hover,.nav-item.on{color:var(--gold);background:rgba(184,151,58,.08);border-left-color:var(--gold);}
+.nav-icon{font-size:16px;width:20px;text-align:center;}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(184,151,58,.15);}
+.sidebar-user{font-size:11px;color:rgba(255,255,255,.5);margin-bottom:8px;}
+.btn-logout{width:100%;padding:8px;background:rgba(255,255,255,.05);border:1px solid rgba(184,151,58,.2);border-radius:4px;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1px;}
+
+/* MAIN */
+.admin-main{margin-left:var(--sidebar);flex:1;min-height:100vh;}
+.topbar{background:#fff;padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--cream2);position:sticky;top:0;z-index:50;}
+.topbar-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--gd2);}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.btn-action{padding:8px 16px;background:var(--gd);color:var(--gold2);border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.5px;}
+.content{padding:24px 28px;}
+
+/* CARDS KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:24px;}
+.kpi{background:#fff;border-radius:8px;padding:20px;border:1px solid rgba(0,0,0,.06);box-shadow:0 2px 8px rgba(0,0,0,.04);}
+.kpi-label{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--txt2);font-weight:700;margin-bottom:8px;}
+.kpi-val{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--gd2);line-height:1;}
+.kpi-sub{font-size:11px;color:var(--txt2);margin-top:4px;}
+.kpi-icon{font-size:28px;float:right;margin-top:-4px;}
+
+/* CHARTS */
+.charts-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px;}
+.chart-box{background:#fff;border-radius:8px;padding:20px;border:1px solid rgba(0,0,0,.06);}
+.chart-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--gd2);margin-bottom:16px;}
+
+/* TABLE */
+.table-box{background:#fff;border-radius:8px;border:1px solid rgba(0,0,0,.06);overflow:hidden;margin-bottom:20px;}
+.table-header{padding:16px 20px;border-bottom:1px solid var(--cream2);display:flex;align-items:center;justify-content:space-between;}
+.table-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--gd2);}
+table{width:100%;border-collapse:collapse;}
+th{background:var(--cream);padding:10px 16px;text-align:left;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt2);font-weight:700;white-space:nowrap;}
+td{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--cream2);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(245,240,230,.5);}
+
+/* STATUS BADGES */
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+.badge-pago{background:#d4edda;color:#155724;}
+.badge-pendente{background:#fff3cd;color:#856404;}
+.badge-preparo{background:#cce5ff;color:#004085;}
+.badge-pronto{background:#d1ecf1;color:#0c5460;}
+.badge-cancelado{background:#f8d7da;color:#721c24;}
+
+/* FORMULÁRIOS ADMIN */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.form-row.full{grid-template-columns:1fr;}
+.form-group-admin label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--txt2);display:block;margin-bottom:6px;}
+.form-group-admin input,.form-group-admin select,.form-group-admin textarea{width:100%;padding:10px 12px;border:1.5px solid var(--cream2);border-radius:6px;font-family:'Montserrat',sans-serif;font-size:13px;}
+.form-group-admin input:focus,.form-group-admin select:focus{outline:none;border-color:var(--gold);}
+.form-group-admin textarea{resize:vertical;min-height:70px;}
+
+/* MODAL ADMIN */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;padding:28px;}
+.modal-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--gd2);margin-bottom:20px;}
+.modal-btns{display:flex;gap:10px;margin-top:20px;}
+.btn-save{flex:1;padding:12px;background:var(--gd);color:var(--gold2);border:none;border-radius:6px;font-weight:700;font-size:14px;cursor:pointer;}
+.btn-cancel-modal{flex:1;padding:12px;background:none;border:1.5px solid var(--cream2);border-radius:6px;font-size:13px;cursor:pointer;color:var(--txt2);}
+.btn-del{padding:12px 16px;background:var(--red);color:#fff;border:none;border-radius:6px;font-weight:700;font-size:13px;cursor:pointer;}
+
+/* RANKING */
+.rank-list{list-style:none;}
+.rank-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--cream2);}
+.rank-item:last-child{border-bottom:none;}
+.rank-pos{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--gold);width:28px;}
+.rank-name{flex:1;font-size:13px;font-weight:600;}
+.rank-bar-wrap{width:80px;height:6px;background:var(--cream2);border-radius:3px;overflow:hidden;}
+.rank-bar{height:100%;background:var(--gold);border-radius:3px;}
+.rank-val{font-size:12px;font-weight:700;color:var(--gd2);min-width:40px;text-align:right;}
+
+/* TOAST */
+.adm-toast{position:fixed;bottom:24px;right:24px;background:var(--gd);color:var(--gold2);padding:12px 22px;border-radius:6px;font-size:13px;font-weight:600;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;}
+.adm-toast.show{opacity:1;}
+
+/* FOTO PREVIEW */
+.foto-preview{width:120px;height:80px;object-fit:cover;border-radius:6px;border:1px solid var(--cream2);margin-top:8px;}
+
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);}
+  .admin-main{margin-left:0;}
+  .charts-grid{grid-template-columns:1fr;}
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage">
+  <div class="login-box">
+    <div class="login-logo">AMARO</div>
+    <div class="login-sub">Painel Administrativo</div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input type="email" class="form-input" id="loginEmail" placeholder="admin@amarocafe.com.br" value="admin@amarocafe.com.br">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Senha</label>
+      <input type="password" class="form-input" id="loginSenha" placeholder="••••••••" value="amaro@2024">
+    </div>
+    <button class="btn-login" onclick="fazerLogin()">Entrar</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="adminPage">
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-text">AMARO</div>
+        <div class="sidebar-logo-sub">Painel Admin</div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-item on" onclick="irPara('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
+        <div class="nav-item" onclick="irPara('pedidos')"><span class="nav-icon">🧾</span> Pedidos</div>
+        <div class="nav-item" onclick="irPara('cardapio')"><span class="nav-icon">🍽️</span> Cardápio</div>
+        <div class="nav-item" onclick="irPara('mesas')"><span class="nav-icon">🪑</span> Mesas & QR</div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user" id="sidebarUser">...</div>
+        <button class="btn-logout" onclick="logout()">Sair</button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="admin-main">
+      <div class="topbar">
+        <span class="topbar-title" id="topbarTitle">Dashboard</span>
+        <div class="topbar-right" id="topbarActions"></div>
+      </div>
+      <div class="content" id="adminContent">
+        <div style="text-align:center;padding:60px"><div style="width:40px;height:40px;border:3px solid rgba(184,151,58,.2);border-top-color:#B8973A;border-radius:50%;animation:sp .8s linear infinite;margin:0 auto"></div></div>
+      </div>
+    </main>
+
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal" id="adminModalContent"></div>
+</div>
+
+<!-- TOAST -->
+<div class="adm-toast" id="admToast"></div>
+
+<style>@keyframes sp{to{transform:rotate(360deg)}}</style>
+
+<script src="../site-config.js"></script>
+<script src="../app-config.js"></script>
+<script>
+const CONFIG = window.AMARO_CONFIG;
+const API = CONFIG.apiBase;
+let token = localStorage.getItem('amaro_token');
+let adminData = null;
+let paginaAtual = 'dashboard';
+let chartFat = null, chartPgto = null;
+
+// ── AUTH ──────────────────────────────────────────
+if (token) mostrarAdmin();
+
+async function fazerLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const senha = document.getElementById('loginSenha').value;
+  try {
+    const r = await api('/auth/login','POST',{email,senha},false);
+    token = r.token;
+    adminData = r.admin;
+    localStorage.setItem('amaro_token', token);
+    mostrarAdmin();
+  } catch(e) {
+    document.getElementById('loginErr').textContent = e.message || 'Credenciais inválidas';
+  }
+}
+
+function mostrarAdmin() {
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('adminPage').style.display = 'block';
+  if (adminData) document.getElementById('sidebarUser').textContent = adminData.nome;
+  irPara('dashboard');
+}
+
+function logout() {
+  localStorage.removeItem('amaro_token');
+  location.reload();
+}
+
+// ── API helper ────────────────────────────────────
+async function api(path, method='GET', body=null, auth=true) {
+  const opts = { method, headers: {'Content-Type':'application/json'} };
+  if (auth && token) opts.headers['Authorization'] = 'Bearer ' + token;
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.erro || 'Erro');
+  return data;
+}
+
+async function apiForm(path, formData, method='POST') {
+  const r = await fetch(API + path, {
+    method, headers: { 'Authorization': 'Bearer ' + token },
+    body: formData
+  });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.erro || 'Erro');
+  return data;
+}
+
+const toast = (msg, err=false) => {
+  const el = document.getElementById('admToast');
+  el.textContent = msg;
+  el.style.background = err ? '#c53030' : '#1A2118';
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+};
+
+const fmt = v => 'R$ ' + Number(v).toFixed(2).replace('.',',');
+const badge = s => {
+  const map = {confirmado:'pago',em_preparo:'preparo',pronto:'pronto',cancelado:'cancelado',aguardando_pagamento:'pendente'};
+  return `<span class="badge badge-${map[s]||'pendente'}">${s.replace(/_/g,' ')}</span>`;
+};
+
+// ── NAVEGAÇÃO ─────────────────────────────────────
+function irPara(pag) {
+  paginaAtual = pag;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('on'));
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.textContent.toLowerCase().includes(pag==='cardapio'?'cardápio':pag)) n.classList.add('on');
+  });
+  const titles = {dashboard:'Dashboard',pedidos:'Pedidos',cardapio:'Gestão do Cardápio',mesas:'Mesas & QR Code'};
+  document.getElementById('topbarTitle').textContent = titles[pag];
+  const actMap = {
+    cardapio: `<button class="btn-action" onclick="abrirModalPrato()">+ Novo Prato</button>`,
+    pedidos: '',dashboard:'',mesas:''
+  };
+  document.getElementById('topbarActions').innerHTML = actMap[pag]||'';
+  const fns = {dashboard:renderDashboard,pedidos:renderPedidos,cardapio:renderCardapio,mesas:renderMesas};
+  fns[pag]?.();
+}
+
+// ── DASHBOARD ─────────────────────────────────────
+async function renderDashboard() {
+  const c = document.getElementById('adminContent');
+  c.innerHTML = '<div style="text-align:center;padding:60px"><div style="width:40px;height:40px;border:3px solid rgba(184,151,58,.2);border-top-color:#B8973A;border-radius:50%;animation:sp .8s linear infinite;margin:0 auto"></div></div>';
+  const d = await api('/dashboard');
+
+  c.innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi"><span class="kpi-icon">☀️</span><div class="kpi-label">Hoje</div><div class="kpi-val">${fmt(d.resumo.hoje.valor)}</div><div class="kpi-sub">${d.resumo.hoje.pedidos} pedidos</div></div>
+      <div class="kpi"><span class="kpi-icon">📅</span><div class="kpi-label">Esta Semana</div><div class="kpi-val">${fmt(d.resumo.semana.valor)}</div><div class="kpi-sub">${d.resumo.semana.pedidos} pedidos</div></div>
+      <div class="kpi"><span class="kpi-icon">🗓️</span><div class="kpi-label">Este Mês</div><div class="kpi-val">${fmt(d.resumo.mes.valor)}</div><div class="kpi-sub">${d.resumo.mes.pedidos} pedidos</div></div>
+      <div class="kpi"><span class="kpi-icon">🎯</span><div class="kpi-label">Ticket Médio</div><div class="kpi-val">${fmt(d.resumo.ticket_medio)}</div><div class="kpi-sub">por pedido</div></div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-box">
+        <div class="chart-title">Faturamento — Últimos 7 Dias</div>
+        <canvas id="chartFat" height="120"></canvas>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">Por Pagamento</div>
+        <canvas id="chartPgto" height="120"></canvas>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <div class="chart-box">
+        <div class="chart-title">🏆 Pratos Mais Vendidos</div>
+        <ul class="rank-list">${d.rankings.pratos.slice(0,6).map((p,i)=>{
+          const max = d.rankings.pratos[0]?.total_vendido||1;
+          return `<li class="rank-item">
+            <span class="rank-pos">${i+1}</span>
+            <span class="rank-name">${p.nome_prato}</span>
+            <div class="rank-bar-wrap"><div class="rank-bar" style="width:${(p.total_vendido/max*100).toFixed(0)}%"></div></div>
+            <span class="rank-val">${p.total_vendido}</span>
+          </li>`;}).join('')}</ul>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">📦 Pedidos Recentes</div>
+        <table><thead><tr><th>#</th><th>Mesa</th><th>Total</th><th>Status</th></tr></thead>
+        <tbody>${d.pedidos_recentes.map(p=>`
+          <tr onclick="verPedido(${p.id})" style="cursor:pointer">
+            <td><strong>#${p.id}</strong></td>
+            <td>${p.mesa_numero}</td>
+            <td>${fmt(p.total)}</td>
+            <td>${badge(p.status)}</td>
+          </tr>`).join('')}</tbody></table>
+      </div>
+    </div>`;
+
+  // Gráfico faturamento
+  const fat7 = d.graficos.fat_7_dias;
+  const ctxF = document.getElementById('chartFat').getContext('2d');
+  if(chartFat) chartFat.destroy();
+  chartFat = new Chart(ctxF, {
+    type:'bar',
+    data:{
+      labels: fat7.map(d=>d.dia.slice(5)),
+      datasets:[{label:'Faturamento',data:fat7.map(d=>d.valor),backgroundColor:'rgba(184,151,58,.7)',borderColor:'#B8973A',borderWidth:1,borderRadius:4}]
+    },
+    options:{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'R$'+v}}}}
+  });
+
+  // Gráfico pagamento
+  const pgto = d.graficos.por_pagamento;
+  const ctxP = document.getElementById('chartPgto').getContext('2d');
+  if(chartPgto) chartPgto.destroy();
+  chartPgto = new Chart(ctxP, {
+    type:'doughnut',
+    data:{
+      labels: pgto.map(p=>p.forma_pagamento||'N/A'),
+      datasets:[{data:pgto.map(p=>p.quantidade),backgroundColor:['#B8973A','#2C3B2A','#D4AF5A','#1A2118']}]
+    },
+    options:{plugins:{legend:{position:'bottom'}}}
+  });
+}
+
+// ── PEDIDOS ───────────────────────────────────────
+async function renderPedidos() {
+  const c = document.getElementById('adminContent');
+  c.innerHTML = `
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <select id="filtroStatus" onchange="renderPedidos()" style="padding:8px 12px;border:1.5px solid var(--cream2);border-radius:6px;font-size:13px">
+        <option value="">Todos os status</option>
+        <option>aguardando_pagamento</option><option>confirmado</option>
+        <option>em_preparo</option><option>pronto</option><option>entregue</option><option>cancelado</option>
+      </select>
+      <input type="date" id="filtroData" onchange="renderPedidos()" style="padding:8px 12px;border:1.5px solid var(--cream2);border-radius:6px;font-size:13px" value="${new Date().toISOString().split('T')[0]}">
+      <input type="number" id="filtroMesa" placeholder="Mesa" oninput="renderPedidos()" style="padding:8px 12px;border:1.5px solid var(--cream2);border-radius:6px;font-size:13px;width:90px">
+    </div>
+    <div class="table-box">
+      <table id="pedidosTable">
+        <thead><tr><th>#</th><th>Mesa</th><th>Total</th><th>Pagamento</th><th>Status</th><th>Horário</th><th>Ações</th></tr></thead>
+        <tbody id="pedidosTbody"><tr><td colspan="7" style="text-align:center;padding:30px">Carregando...</td></tr></tbody>
+      </table>
+    </div>`;
+
+  const params = new URLSearchParams();
+  const st = document.getElementById('filtroStatus')?.value;
+  const dt = document.getElementById('filtroData')?.value;
+  const ms = document.getElementById('filtroMesa')?.value;
+  if(st) params.set('status',st);
+  if(dt) params.set('data',dt);
+  if(ms) params.set('mesa',ms);
+
+  const pedidos = await api('/pedidos/admin/lista?' + params);
+  const tbody = document.getElementById('pedidosTbody');
+  if (!pedidos.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:#999">Nenhum pedido encontrado</td></tr>';
+    return;
+  }
+  tbody.innerHTML = pedidos.map(p=>`
+    <tr>
+      <td><strong>#${p.id}</strong></td>
+      <td>Mesa ${p.mesa_numero}</td>
+      <td>${fmt(p.total)}</td>
+      <td>${p.forma_pagamento||'—'}</td>
+      <td>${badge(p.status)}</td>
+      <td>${p.criado_em?.slice(11,16)||'—'}</td>
+      <td>
+        <button onclick="verPedido(${p.id})" style="padding:4px 10px;background:var(--gd2);color:var(--gold2);border:none;border-radius:4px;font-size:11px;cursor:pointer">Ver</button>
+        <select onchange="mudarStatus(${p.id},this.value)" style="padding:4px 8px;border:1px solid var(--cream2);border-radius:4px;font-size:11px;margin-left:4px">
+          <option>Mudar status</option>
+          <option value="em_preparo">Em preparo</option>
+          <option value="pronto">Pronto</option>
+          <option value="entregue">Entregue</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+      </td>
+    </tr>`).join('');
+}
+
+async function verPedido(id) {
+  const p = await api('/pedidos/admin/'+id);
+  abrirModal(`
+    <div class="modal-title">Pedido #${p.id}</div>
+    <p style="font-size:12px;color:var(--txt2);margin-bottom:16px">Mesa ${p.mesa_numero} • ${p.criado_em}</p>
+    <table style="width:100%;font-size:13px;margin-bottom:16px">
+      <thead><tr style="background:var(--cream)"><th style="padding:8px;text-align:left">Item</th><th style="padding:8px;text-align:center">Qtd</th><th style="padding:8px;text-align:right">Subtotal</th></tr></thead>
+      <tbody>${p.itens.map(i=>`<tr><td style="padding:8px">${i.nome_prato}</td><td style="padding:8px;text-align:center">${i.quantidade}</td><td style="padding:8px;text-align:right">${fmt(i.subtotal)}</td></tr>`).join('')}</tbody>
+    </table>
+    <div style="display:flex;justify-content:space-between;border-top:2px solid var(--cream2);padding-top:12px">
+      <strong>Total</strong><strong>${fmt(p.total)}</strong>
+    </div>
+    ${p.observacao?`<div style="margin-top:12px;padding:10px;background:var(--cream);border-radius:6px;font-size:12px"><strong>Obs:</strong> ${p.observacao}</div>`:''}
+    <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+      ${['em_preparo','pronto','entregue','cancelado'].map(s=>`
+        <button onclick="mudarStatus(${p.id},'${s}');fecharModal()" style="padding:8px 14px;background:var(--gd);color:var(--gold2);border:none;border-radius:4px;font-size:11px;cursor:pointer;font-weight:700">${s.replace(/_/g,' ')}</button>`).join('')}
+    </div>
+    <button class="btn-cancel-modal" onclick="fecharModal()" style="margin-top:12px">Fechar</button>`);
+}
+
+async function mudarStatus(id, status) {
+  if (!status || status === 'Mudar status') return;
+  await api('/pedidos/admin/'+id+'/status','PUT',{status});
+  toast('Status atualizado!');
+  renderPedidos();
+}
+
+// ── CARDÁPIO ──────────────────────────────────────
+async function renderCardapio() {
+  const c = document.getElementById('adminContent');
+  const [pratos, cats] = await Promise.all([api('/cardapio/admin/pratos'), api('/cardapio/admin/categorias')]);
+
+  const porCat = {};
+  cats.forEach(cat => porCat[cat.id] = []);
+  pratos.forEach(p => { if(porCat[p.categoria_id]) porCat[p.categoria_id].push(p); });
+
+  c.innerHTML = cats.map(cat=>`
+    <div class="table-box" style="margin-bottom:16px">
+      <div class="table-header">
+        <span class="table-title">${cat.nome}</span>
+        <button onclick="abrirModalPrato(${cat.id})" style="padding:6px 14px;background:var(--gd);color:var(--gold2);border:none;border-radius:4px;font-size:11px;cursor:pointer;font-weight:700">+ Prato</button>
+      </div>
+      <table>
+        <thead><tr><th>Foto</th><th>Nome</th><th>Descrição</th><th>Preço</th><th>Disponível</th><th>Ações</th></tr></thead>
+        <tbody>${(porCat[cat.id]||[]).map(p=>`
+          <tr>
+            <td>${p.foto_url?`<img src="${p.foto_url}" style="width:48px;height:36px;object-fit:cover;border-radius:4px">`:'<span style="font-size:24px">🍽️</span>'}</td>
+            <td><strong>${p.nome}</strong></td>
+            <td style="font-size:12px;color:var(--txt2);max-width:200px">${p.descricao||'—'}</td>
+            <td><strong>${fmt(p.preco)}</strong></td>
+            <td><span class="badge ${p.disponivel?'badge-pago':'badge-cancelado'}">${p.disponivel?'Sim':'Não'}</span></td>
+            <td style="display:flex;gap:6px;padding:12px 16px">
+              <button onclick="editarPrato(${p.id})" style="padding:5px 12px;background:var(--gd2);color:var(--gold2);border:none;border-radius:4px;font-size:11px;cursor:pointer">Editar</button>
+              <button onclick="deletarPrato(${p.id})" style="padding:5px 12px;background:#c53030;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer">Remover</button>
+            </td>
+          </tr>`).join('')||'<tr><td colspan="6" style="text-align:center;padding:20px;color:#999;font-size:13px">Nenhum prato nesta categoria</td></tr>'}
+        </tbody>
+      </table>
+    </div>`).join('');
+}
+
+async function abrirModalPrato(catId=null) {
+  const cats = await api('/cardapio/admin/categorias');
+  abrirModal(`
+    <div class="modal-title">Novo Prato</div>
+    <div class="form-row">
+      <div class="form-group-admin">
+        <label>Categoria *</label>
+        <select id="fpCat">
+          ${cats.map(c=>`<option value="${c.id}" ${c.id==catId?'selected':''}>${c.nome}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group-admin">
+        <label>Preço (R$) *</label>
+        <input type="number" id="fpPreco" step="0.01" placeholder="0,00">
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group-admin">
+        <label>Nome do Prato *</label>
+        <input type="text" id="fpNome" placeholder="Ex: Camarão à Imperador">
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group-admin">
+        <label>Descrição</label>
+        <textarea id="fpDesc" placeholder="Ingredientes e modo de preparo..."></textarea>
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group-admin">
+        <label>Foto do Prato</label>
+        <input type="file" id="fpFoto" accept="image/*" onchange="previewFoto(this)">
+        <img id="fpFotoPreview" style="display:none" class="foto-preview">
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel-modal" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-save" onclick="salvarPrato()">Salvar Prato</button>
+    </div>`);
+}
+
+function previewFoto(input) {
+  if (!input.files?.[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById('fpFotoPreview');
+    img.src = e.target.result;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+async function salvarPrato() {
+  const fd = new FormData();
+  fd.append('categoria_id', document.getElementById('fpCat').value);
+  fd.append('nome', document.getElementById('fpNome').value);
+  fd.append('descricao', document.getElementById('fpDesc').value);
+  fd.append('preco', document.getElementById('fpPreco').value);
+  const foto = document.getElementById('fpFoto').files[0];
+  if (foto) fd.append('foto', foto);
+  try {
+    await apiForm('/cardapio/admin/pratos', fd);
+    fecharModal(); toast('✓ Prato criado!'); renderCardapio();
+  } catch(e) { toast(e.message, true); }
+}
+
+async function editarPrato(id) {
+  const [prato, cats] = await Promise.all([api('/cardapio/pratos/'+id), api('/cardapio/admin/categorias')]);
+  abrirModal(`
+    <div class="modal-title">Editar Prato</div>
+    <div class="form-row">
+      <div class="form-group-admin">
+        <label>Categoria</label>
+        <select id="epCat">${cats.map(c=>`<option value="${c.id}" ${c.id==prato.categoria_id?'selected':''}>${c.nome}</option>`).join('')}</select>
+      </div>
+      <div class="form-group-admin">
+        <label>Preço (R$)</label>
+        <input type="number" id="epPreco" step="0.01" value="${prato.preco}">
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group-admin">
+        <label>Nome</label>
+        <input type="text" id="epNome" value="${prato.nome}">
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group-admin">
+        <label>Descrição</label>
+        <textarea id="epDesc">${prato.descricao||''}</textarea>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group-admin">
+        <label>Disponível</label>
+        <select id="epDisp"><option value="1" ${prato.disponivel?'selected':''}>Sim</option><option value="0" ${!prato.disponivel?'selected':''}>Não</option></select>
+      </div>
+      <div class="form-group-admin">
+        <label>Nova Foto (opcional)</label>
+        <input type="file" id="epFoto" accept="image/*" onchange="previewFoto2(this)">
+      </div>
+    </div>
+    ${prato.foto_url?`<img src="${prato.foto_url}" class="foto-preview" id="epFotoPreview">`:'<img id="epFotoPreview" class="foto-preview" style="display:none">'}
+    <div class="modal-btns">
+      <button class="btn-del" onclick="deletarPrato(${id})">Remover</button>
+      <button class="btn-cancel-modal" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-save" onclick="atualizarPrato(${id})">Salvar</button>
+    </div>`);
+}
+
+function previewFoto2(input) {
+  if (!input.files?.[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => { const img = document.getElementById('epFotoPreview'); img.src = e.target.result; img.style.display='block'; };
+  reader.readAsDataURL(input.files[0]);
+}
+
+async function atualizarPrato(id) {
+  const fd = new FormData();
+  fd.append('categoria_id', document.getElementById('epCat').value);
+  fd.append('nome', document.getElementById('epNome').value);
+  fd.append('descricao', document.getElementById('epDesc').value);
+  fd.append('preco', document.getElementById('epPreco').value);
+  fd.append('disponivel', document.getElementById('epDisp').value);
+  const foto = document.getElementById('epFoto').files[0];
+  if (foto) fd.append('foto', foto);
+  try {
+    await apiForm('/cardapio/admin/pratos/'+id, fd, 'PUT');
+    fecharModal(); toast('✓ Prato atualizado!'); renderCardapio();
+  } catch(e) { toast(e.message, true); }
+}
+
+async function deletarPrato(id) {
+  if (!confirm('Remover este prato?')) return;
+  await api('/cardapio/admin/pratos/'+id,'DELETE');
+  fecharModal(); toast('Prato removido'); renderCardapio();
+}
+
+// ── MESAS & QR ────────────────────────────────────
+async function renderMesas() {
+  const c = document.getElementById('adminContent');
+  const mesas = await api('/dashboard/mesas');
+  c.innerHTML = `
+    <p style="font-size:12px;color:var(--txt2);margin-bottom:20px">Cada mesa tem um QR Code único. Imprima e cole na mesa para os clientes fazerem pedidos.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px">
+      ${mesas.map(m=>`
+        <div style="background:#fff;border-radius:8px;padding:20px;text-align:center;border:1px solid rgba(0,0,0,.07);box-shadow:0 2px 8px rgba(0,0,0,.04)">
+          <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--gd2);margin-bottom:4px">${m.numero}</div>
+          <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--txt2);margin-bottom:12px">Mesa</div>
+          <div id="qr-${m.numero}" style="width:100px;height:100px;margin:0 auto 12px;background:var(--cream2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--txt2)">Gerando...</div>
+          <button onclick="imprimirQR(${m.numero})" style="width:100%;padding:7px;background:var(--gd);color:var(--gold2);border:none;border-radius:4px;font-size:11px;cursor:pointer;font-weight:700">🖨️ Imprimir</button>
+        </div>`).join('')}
+    </div>`;
+
+  // Gerar QR codes usando API pública
+  mesas.forEach(m => {
+    const url = encodeURIComponent(CONFIG.clienteUrl(m.numero));
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${url}`;
+    const div = document.getElementById('qr-'+m.numero);
+    if (div) div.innerHTML = `<img src="${qrUrl}" style="width:100px;height:100px;border-radius:4px" alt="QR Mesa ${m.numero}">`;
+  });
+}
+
+function imprimirQR(mesa) {
+  const url = CONFIG.clienteUrl(mesa);
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(url)}`;
+  const w = window.open('','_blank','width=400,height=500');
+  w.document.write(`
+    <html><head><title>QR Code Mesa ${mesa}</title>
+    <style>body{font-family:'Georgia',serif;text-align:center;padding:30px;background:#F5F0E6}
+    h1{font-size:48px;color:#1A2118;margin-bottom:0}
+    p{color:#B8973A;font-size:14px;letter-spacing:3px;text-transform:uppercase;margin:4px 0 20px}
+    img{border-radius:8px}
+    small{display:block;margin-top:12px;color:#777;font-size:11px}</style></head>
+    <body onload="window.print()">
+      <h1>AMARO</h1><p>Café & Gastronomia</p>
+      <img src="${qrUrl}" width="260" height="260">
+      <h2 style="font-size:32px;color:#1A2118;margin-top:16px">Mesa ${mesa}</h2>
+      <p>Escaneie para fazer seu pedido</p>
+      <small>${url}</small>
+    </body></html>`);
+}
+
+// ── MODAL HELPER ─────────────────────────────────
+function abrirModal(html) {
+  document.getElementById('adminModalContent').innerHTML = html;
+  document.getElementById('adminModal').classList.add('open');
+}
+function fecharModal() {
+  document.getElementById('adminModal').classList.remove('open');
+}
+document.getElementById('adminModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('adminModal')) fecharModal();
+});
+</script>
+</body>
+</html>
