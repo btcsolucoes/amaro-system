@@ -230,13 +230,16 @@ body{font-family:'Montserrat',sans-serif;background:var(--cream);color:var(--txt
 
 <script src="../site-config.js"></script>
 <script src="../app-config.js"></script>
+<script src="../demo-data.js"></script>
 <script>
 const CONFIG = window.AMARO_CONFIG;
 const API = CONFIG.apiBase;
+const DEMO = window.AMARO_DEMO;
 let cardapio = [];
 let carrinho = [];
 let mesaNumero = 1;
 let pedidoId = null;
+let demoMode = false;
 
 // ── Pegar mesa da URL ─────────────────────────────
 const urlParams = new URLSearchParams(window.location.search);
@@ -252,13 +255,29 @@ const toast = (msg, dur=2500) => {
   setTimeout(() => el.classList.remove('show'), dur);
 };
 
+function ativarModoDemo() {
+  if (demoMode) return;
+  demoMode = true;
+  const aviso = document.createElement('div');
+  aviso.style.cssText = 'margin-top:16px;padding:10px 14px;border:1px solid rgba(184,151,58,.35);background:rgba(255,255,255,.06);color:#F5F0E6;font-size:11px;letter-spacing:1px;line-height:1.6;border-radius:6px;max-width:420px;margin-left:auto;margin-right:auto';
+  aviso.innerHTML = 'Modo demonstracao ativo.<br>Cardapio pronto para apresentacao.';
+  document.querySelector('.hero-inner').appendChild(aviso);
+}
+
 // ── Carregar cardápio ─────────────────────────────
 async function carregarCardapio() {
   try {
     const r = await fetch(`${API}/cardapio`);
+    if (!r.ok) throw new Error('API indisponivel');
     cardapio = await r.json();
     renderCardapio();
   } catch(e) {
+    if (DEMO) {
+      ativarModoDemo();
+      cardapio = DEMO.cardapio;
+      renderCardapio();
+      return;
+    }
     document.getElementById('mainContent').innerHTML =
       '<div style="text-align:center;padding:60px 20px;color:#999">Erro ao carregar cardápio.<br>Verifique a conexão.</div>';
   }
@@ -461,6 +480,11 @@ document.getElementById('btnPedir').onclick = async () => {
 
 // ── Pedido + Pagamento ────────────────────────────
 async function criarPedido(obs) {
+  if (demoMode) {
+    pedidoId = Math.floor(1000 + Math.random() * 9000);
+    abrirModalPagamento(totalCarrinho());
+    return;
+  }
   try {
     const r = await fetch(`${API}/pedidos`, {
       method:'POST',
@@ -504,6 +528,25 @@ function abrirModalPagamento(total) {
 }
 
 async function selecionarPagamento(metodo, total) {
+  if (demoMode) {
+    if (metodo === 'pix') {
+      const codigoPix = `AMARO-DEMO-${pedidoId}-${mesaNumero}`;
+      document.getElementById('modalContent').innerHTML = `
+        <div class="modal-title">Pague com PIX</div>
+        <div class="modal-sub">Pedido #${pedidoId} • ${fmt(total)}</div>
+        <div class="pix-box">
+          <div class="pix-valor">${fmt(total)}</div>
+          <div class="pix-key">${codigoPix}</div>
+          <button class="pix-copy" onclick="copiarPix('${codigoPix}')">Copiar codigo PIX</button>
+          <div class="pix-note">Fluxo demonstrativo para apresentacao.</div>
+        </div>
+        <button class="btn-simular" onclick="simularPagamento('pix')">Confirmar Pagamento</button>
+        <button class="btn-cancelar" onclick="abrirModalPagamento(${total})">Voltar</button>`;
+      return;
+    }
+    simularPagamento('cartao');
+    return;
+  }
   if (metodo === 'pix') {
     const content = document.getElementById('modalContent');
     content.innerHTML = `<div class="loading"><div class="spin"></div><p>Gerando PIX...</p></div>`;
@@ -541,6 +584,10 @@ function copiarPix(chave) {
 async function simularPagamento(metodo) {
   const content = document.getElementById('modalContent');
   content.innerHTML = `<div class="loading"><div class="spin"></div><p>Processando...</p></div>`;
+  if (demoMode) {
+    setTimeout(() => exibirSucesso(), 700);
+    return;
+  }
   try {
     await fetch(`${API}/pagamento/simular`, {
       method:'POST',headers:{'Content-Type':'application/json'},

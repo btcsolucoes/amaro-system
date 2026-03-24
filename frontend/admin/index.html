@@ -197,13 +197,22 @@ tr:hover td{background:rgba(245,240,230,.5);}
 
 <script src="../site-config.js"></script>
 <script src="../app-config.js"></script>
+<script src="../demo-data.js"></script>
 <script>
 const CONFIG = window.AMARO_CONFIG;
 const API = CONFIG.apiBase;
+const DEMO = window.AMARO_DEMO;
+const DEMO_FLAG_KEY = 'amaro_demo_mode';
 let token = localStorage.getItem('amaro_token');
 let adminData = null;
 let paginaAtual = 'dashboard';
 let chartFat = null, chartPgto = null;
+let demoMode = localStorage.getItem(DEMO_FLAG_KEY) === '1';
+
+if (demoMode && DEMO) {
+  token = 'demo-token';
+  adminData = DEMO.admin;
+}
 
 // ── AUTH ──────────────────────────────────────────
 if (token) mostrarAdmin();
@@ -215,7 +224,7 @@ async function fazerLogin() {
     const r = await api('/auth/login','POST',{email,senha},false);
     token = r.token;
     adminData = r.admin;
-    localStorage.setItem('amaro_token', token);
+    if (!demoMode) localStorage.setItem('amaro_token', token);
     mostrarAdmin();
   } catch(e) {
     document.getElementById('loginErr').textContent = e.message || 'Credenciais inválidas';
@@ -231,21 +240,84 @@ function mostrarAdmin() {
 
 function logout() {
   localStorage.removeItem('amaro_token');
+  localStorage.removeItem(DEMO_FLAG_KEY);
   location.reload();
+}
+
+function ativarDemoAdmin() {
+  if (!DEMO) throw new Error('Modo demo indisponivel');
+  demoMode = true;
+  token = 'demo-token';
+  adminData = DEMO.admin;
+  localStorage.setItem(DEMO_FLAG_KEY, '1');
+  localStorage.removeItem('amaro_token');
+}
+
+function demoApi(path, method='GET', body=null) {
+  const fakeUrl = new URL(`https://demo.local${path}`);
+  const route = fakeUrl.pathname;
+  const parts = route.split('/').filter(Boolean);
+
+  if (route === '/auth/login' && method === 'POST') {
+    if ((body?.email || '').toLowerCase() !== 'admin@amarocafe.com.br' || body?.senha !== 'amaro@2024') {
+      throw new Error('Use admin@amarocafe.com.br / amaro@2024 no modo demonstracao');
+    }
+    return { token: 'demo-token', admin: DEMO.admin };
+  }
+  if (route === '/dashboard' && method === 'GET') return DEMO.dashboard;
+  if (route === '/dashboard/mesas' && method === 'GET') return DEMO.mesas;
+  if (route === '/cardapio/admin/pratos' && method === 'GET') return DEMO.pratos;
+  if (route === '/cardapio/admin/categorias' && method === 'GET') return DEMO.categorias;
+  if (route === '/cardapio/pratos/' + parts[2] && method === 'GET') {
+    const prato = DEMO.pratos.find((item) => item.id === Number(parts[2]));
+    if (!prato) throw new Error('Prato nao encontrado');
+    return prato;
+  }
+  if (route === '/pedidos/admin/lista' && method === 'GET') {
+    let pedidos = DEMO.pedidosLista;
+    const status = fakeUrl.searchParams.get('status');
+    const data = fakeUrl.searchParams.get('data');
+    const mesa = fakeUrl.searchParams.get('mesa');
+    if (status) pedidos = pedidos.filter((item) => item.status === status);
+    if (data) pedidos = pedidos.filter((item) => item.criado_em.startsWith(data));
+    if (mesa) pedidos = pedidos.filter((item) => String(item.mesa_numero) === String(mesa));
+    return pedidos;
+  }
+  if (parts[0] === 'pedidos' && parts[1] === 'admin' && parts[2] && !parts[3] && method === 'GET') {
+    const pedido = DEMO.findPedido(parts[2]);
+    if (!pedido) throw new Error('Pedido nao encontrado');
+    return pedido;
+  }
+  if (parts[0] === 'pedidos' && parts[1] === 'admin' && parts[2] && parts[3] === 'status' && method === 'PUT') {
+    return DEMO.updatePedidoStatus(parts[2], body?.status);
+  }
+
+  throw new Error('Edicao completa disponivel quando o backend do Railway estiver conectado');
 }
 
 // ── API helper ────────────────────────────────────
 async function api(path, method='GET', body=null, auth=true) {
+  if (demoMode) return demoApi(path, method, body, auth);
   const opts = { method, headers: {'Content-Type':'application/json'} };
   if (auth && token) opts.headers['Authorization'] = 'Bearer ' + token;
   if (body) opts.body = JSON.stringify(body);
-  const r = await fetch(API + path, opts);
-  const data = await r.json();
-  if (!r.ok) throw new Error(data.erro || 'Erro');
-  return data;
+  try {
+    const r = await fetch(API + path, opts);
+    const text = await r.text();
+    const data = text ? JSON.parse(text) : {};
+    if (!r.ok) throw new Error(data.erro || 'Erro');
+    return data;
+  } catch (e) {
+    if (DEMO) {
+      ativarDemoAdmin();
+      return demoApi(path, method, body, auth);
+    }
+    throw e;
+  }
 }
 
 async function apiForm(path, formData, method='POST') {
+  if (demoMode) throw new Error('Edicao disponivel quando o backend do Railway estiver conectado');
   const r = await fetch(API + path, {
     method, headers: { 'Authorization': 'Bearer ' + token },
     body: formData
@@ -279,7 +351,7 @@ function irPara(pag) {
   const titles = {dashboard:'Dashboard',pedidos:'Pedidos',cardapio:'Gestão do Cardápio',mesas:'Mesas & QR Code'};
   document.getElementById('topbarTitle').textContent = titles[pag];
   const actMap = {
-    cardapio: `<button class="btn-action" onclick="abrirModalPrato()">+ Novo Prato</button>`,
+    cardapio: demoMode ? `<span style="font-size:11px;color:var(--txt2);font-weight:700;letter-spacing:1px;text-transform:uppercase">Modo demonstracao</span>` : `<button class="btn-action" onclick="abrirModalPrato()">+ Novo Prato</button>`,
     pedidos: '',dashboard:'',mesas:''
   };
   document.getElementById('topbarActions').innerHTML = actMap[pag]||'';
@@ -459,7 +531,7 @@ async function renderCardapio() {
     <div class="table-box" style="margin-bottom:16px">
       <div class="table-header">
         <span class="table-title">${cat.nome}</span>
-        <button onclick="abrirModalPrato(${cat.id})" style="padding:6px 14px;background:var(--gd);color:var(--gold2);border:none;border-radius:4px;font-size:11px;cursor:pointer;font-weight:700">+ Prato</button>
+        ${demoMode ? '<span style="font-size:11px;color:var(--txt2);font-weight:700;letter-spacing:1px;text-transform:uppercase">Visualizacao</span>' : `<button onclick="abrirModalPrato(${cat.id})" style="padding:6px 14px;background:var(--gd);color:var(--gold2);border:none;border-radius:4px;font-size:11px;cursor:pointer;font-weight:700">+ Prato</button>`}
       </div>
       <table>
         <thead><tr><th>Foto</th><th>Nome</th><th>Descrição</th><th>Preço</th><th>Disponível</th><th>Ações</th></tr></thead>
@@ -471,8 +543,10 @@ async function renderCardapio() {
             <td><strong>${fmt(p.preco)}</strong></td>
             <td><span class="badge ${p.disponivel?'badge-pago':'badge-cancelado'}">${p.disponivel?'Sim':'Não'}</span></td>
             <td style="display:flex;gap:6px;padding:12px 16px">
-              <button onclick="editarPrato(${p.id})" style="padding:5px 12px;background:var(--gd2);color:var(--gold2);border:none;border-radius:4px;font-size:11px;cursor:pointer">Editar</button>
-              <button onclick="deletarPrato(${p.id})" style="padding:5px 12px;background:#c53030;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer">Remover</button>
+              ${demoMode
+                ? '<span style="font-size:11px;color:var(--txt2);font-weight:700;text-transform:uppercase">Demo</span>'
+                : `<button onclick="editarPrato(${p.id})" style="padding:5px 12px;background:var(--gd2);color:var(--gold2);border:none;border-radius:4px;font-size:11px;cursor:pointer">Editar</button>
+              <button onclick="deletarPrato(${p.id})" style="padding:5px 12px;background:#c53030;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer">Remover</button>`}
             </td>
           </tr>`).join('')||'<tr><td colspan="6" style="text-align:center;padding:20px;color:#999;font-size:13px">Nenhum prato nesta categoria</td></tr>'}
         </tbody>
@@ -481,6 +555,10 @@ async function renderCardapio() {
 }
 
 async function abrirModalPrato(catId=null) {
+  if (demoMode) {
+    toast('Edicao liberada quando o backend do Railway estiver conectado', true);
+    return;
+  }
   const cats = await api('/cardapio/admin/categorias');
   abrirModal(`
     <div class="modal-title">Novo Prato</div>
@@ -533,6 +611,10 @@ function previewFoto(input) {
 }
 
 async function salvarPrato() {
+  if (demoMode) {
+    toast('Edicao liberada quando o backend do Railway estiver conectado', true);
+    return;
+  }
   const fd = new FormData();
   fd.append('categoria_id', document.getElementById('fpCat').value);
   fd.append('nome', document.getElementById('fpNome').value);
@@ -547,6 +629,10 @@ async function salvarPrato() {
 }
 
 async function editarPrato(id) {
+  if (demoMode) {
+    toast('Edicao liberada quando o backend do Railway estiver conectado', true);
+    return;
+  }
   const [prato, cats] = await Promise.all([api('/cardapio/pratos/'+id), api('/cardapio/admin/categorias')]);
   abrirModal(`
     <div class="modal-title">Editar Prato</div>
@@ -598,6 +684,10 @@ function previewFoto2(input) {
 }
 
 async function atualizarPrato(id) {
+  if (demoMode) {
+    toast('Edicao liberada quando o backend do Railway estiver conectado', true);
+    return;
+  }
   const fd = new FormData();
   fd.append('categoria_id', document.getElementById('epCat').value);
   fd.append('nome', document.getElementById('epNome').value);
@@ -613,6 +703,10 @@ async function atualizarPrato(id) {
 }
 
 async function deletarPrato(id) {
+  if (demoMode) {
+    toast('Edicao liberada quando o backend do Railway estiver conectado', true);
+    return;
+  }
   if (!confirm('Remover este prato?')) return;
   await api('/cardapio/admin/pratos/'+id,'DELETE');
   fecharModal(); toast('Prato removido'); renderCardapio();
