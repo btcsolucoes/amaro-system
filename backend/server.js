@@ -20,6 +20,9 @@ app.use('/api/cardapio', require('./routes/cardapio'));
 app.use('/api/pedidos', require('./routes/pedidos'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/pagamento', require('./routes/pagamento'));
+app.use('/api/caixa', require('./routes/caixa'));
+app.use('/api/estoque', require('./routes/estoque'));
+app.use('/api/fiscal', require('./routes/fiscal'));
 
 // Keep health before the frontend catch-all.
 app.get('/api/health', (req, res) => res.json({ status: 'ok', ts: new Date() }));

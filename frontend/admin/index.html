@@ -164,6 +164,9 @@ tr:hover td{background:rgba(245,240,230,.5);}
         <div class="nav-item" onclick="irPara('pedidos')"><span class="nav-icon">🧾</span> Pedidos</div>
         <div class="nav-item" onclick="irPara('cardapio')"><span class="nav-icon">🍽️</span> Cardápio</div>
         <div class="nav-item" onclick="irPara('mesas')"><span class="nav-icon">🪑</span> Mesas & QR</div>
+        <div class="nav-item" onclick="irPara('caixa')"><span class="nav-icon">ðŸ’°</span> Caixa</div>
+        <div class="nav-item" onclick="irPara('estoque')"><span class="nav-icon">ðŸ“¦</span> Estoque</div>
+        <div class="nav-item" onclick="irPara('fiscal')"><span class="nav-icon">ðŸ§®</span> Fiscal</div>
       </nav>
       <div class="sidebar-footer">
         <div class="sidebar-user" id="sidebarUser">...</div>
@@ -208,6 +211,11 @@ let adminData = null;
 let paginaAtual = 'dashboard';
 let chartFat = null, chartPgto = null;
 let demoMode = localStorage.getItem(DEMO_FLAG_KEY) === '1';
+let estoqueCache = [];
+let pratosCache = [];
+let fichasCache = [];
+let caixaStatusCache = null;
+let fiscalConfigCache = null;
 
 if (demoMode && DEMO) {
   token = 'demo-token';
@@ -268,6 +276,24 @@ function demoApi(path, method='GET', body=null) {
   if (route === '/dashboard/mesas' && method === 'GET') return DEMO.mesas;
   if (route === '/cardapio/admin/pratos' && method === 'GET') return DEMO.pratos;
   if (route === '/cardapio/admin/categorias' && method === 'GET') return DEMO.categorias;
+  if (route === '/caixa/status' && method === 'GET') return DEMO.caixaStatus;
+  if (route === '/caixa/historico' && method === 'GET') return DEMO.caixaHistorico;
+  if (route === '/caixa/lancamentos' && method === 'GET') return DEMO.caixaLancamentos;
+  if (route === '/caixa/abrir' && method === 'POST') return { ok: true, caixa: DEMO.caixaStatus.caixa };
+  if (route === '/caixa/fechar' && method === 'POST') return { ok: true };
+  if (route === '/caixa/lancamentos' && method === 'POST') return { ok: true };
+  if (route === '/estoque/resumo' && method === 'GET') return DEMO.estoqueResumo;
+  if (route === '/estoque/insumos' && method === 'GET') return DEMO.estoqueInsumos;
+  if (route === '/estoque/insumos' && method === 'POST') return { ok: true };
+  if (parts[0] === 'estoque' && parts[1] === 'insumos' && parts[2] && method === 'PUT') return { ok: true };
+  if (route === '/estoque/movimentos' && method === 'GET') return [];
+  if (route === '/estoque/movimentos' && method === 'POST') return { ok: true };
+  if (route === '/estoque/fichas' && method === 'GET') return DEMO.estoqueFichas;
+  if (parts[0] === 'estoque' && parts[1] === 'fichas' && parts[2] && method === 'PUT') return { ok: true };
+  if (route === '/fiscal/config' && method === 'GET') return DEMO.fiscalConfig;
+  if (route === '/fiscal/config' && method === 'PUT') return { ok: true };
+  if (route === '/fiscal/resumo' && method === 'GET') return DEMO.fiscalResumo;
+  if (route === '/fiscal/lancamentos' && method === 'GET') return DEMO.fiscalLancamentos;
   if (route === '/cardapio/pratos/' + parts[2] && method === 'GET') {
     const prato = DEMO.pratos.find((item) => item.id === Number(parts[2]));
     if (!prato) throw new Error('Prato nao encontrado');
@@ -349,13 +375,18 @@ function irPara(pag) {
     if (n.textContent.toLowerCase().includes(pag==='cardapio'?'cardápio':pag)) n.classList.add('on');
   });
   const titles = {dashboard:'Dashboard',pedidos:'Pedidos',cardapio:'Gestão do Cardápio',mesas:'Mesas & QR Code'};
+  titles.caixa = 'Caixa';
+  titles.estoque = 'Estoque';
+  titles.fiscal = 'Fiscal';
   document.getElementById('topbarTitle').textContent = titles[pag];
   const actMap = {
     cardapio: `<button class="btn-action" onclick="abrirModalPrato()">+ Novo Prato</button>`,
-    pedidos: '',dashboard:'',mesas:''
+    estoque: `<button class="btn-action" onclick="abrirModalInsumo()">+ Novo Insumo</button>`,
+    fiscal: `<button class="btn-action" onclick="abrirModalFiscalConfig()">Config Fiscal</button>`,
+    pedidos: '',dashboard:'',mesas:'',caixa:''
   };
   document.getElementById('topbarActions').innerHTML = actMap[pag]||'';
-  const fns = {dashboard:renderDashboard,pedidos:renderPedidos,cardapio:renderCardapio,mesas:renderMesas};
+  const fns = {dashboard:renderDashboard,pedidos:renderPedidos,cardapio:renderCardapio,mesas:renderMesas,caixa:renderCaixa,estoque:renderEstoque,fiscal:renderFiscal};
   fns[pag]?.();
 }
 
@@ -756,6 +787,167 @@ function imprimirQR(mesa) {
 }
 
 // ── MODAL HELPER ─────────────────────────────────
+function fmtQtd(v) {
+  return Number(v || 0).toFixed(2).replace('.', ',');
+}
+
+async function renderCaixa() {
+  const c = document.getElementById('adminContent');
+  c.innerHTML = '<div style="text-align:center;padding:60px"><div style="width:40px;height:40px;border:3px solid rgba(184,151,58,.2);border-top-color:#B8973A;border-radius:50%;animation:sp .8s linear infinite;margin:0 auto"></div></div>';
+  const [status, lancamentos, historico] = await Promise.all([api('/caixa/status'), api('/caixa/lancamentos'), api('/caixa/historico')]);
+  caixaStatusCache = status;
+  const caixa = status.caixa;
+  c.innerHTML = `
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">
+      ${status.aberto
+        ? `<button class="btn-action" onclick="abrirModalLancamentoCaixa('suprimento')">+ Suprimento</button>
+           <button class="btn-action" onclick="abrirModalLancamentoCaixa('sangria')">+ Sangria</button>
+           <button class="btn-action" onclick="abrirModalLancamentoCaixa('despesa')">+ Despesa</button>
+           <button class="btn-action" onclick="abrirModalFecharCaixa()">Fechar Caixa</button>`
+        : `<button class="btn-action" onclick="abrirModalAbrirCaixa()">Abrir Caixa</button>`}
+    </div>
+    ${status.aberto ? `
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Saldo Inicial</div><div class="kpi-val">${fmt(caixa.saldo_inicial)}</div></div>
+        <div class="kpi"><div class="kpi-label">Saldo Sistema</div><div class="kpi-val">${fmt(caixa.saldo_sistema_calculado)}</div></div>
+        <div class="kpi"><div class="kpi-label">Vendas</div><div class="kpi-val">${fmt(caixa.totais.venda || 0)}</div></div>
+        <div class="kpi"><div class="kpi-label">Despesas + Sangrias</div><div class="kpi-val">${fmt((caixa.totais.despesa || 0) + (caixa.totais.sangria || 0))}</div></div>
+      </div>` : '<p style="font-size:12px;color:var(--txt2);margin-bottom:16px">Nenhum caixa aberto no momento.</p>'}
+    <div class="table-box"><div class="table-header"><span class="table-title">Lancamentos do Caixa</span></div><table><thead><tr><th>Hora</th><th>Tipo</th><th>Descricao</th><th>Pagamento</th><th>Valor</th></tr></thead><tbody>${lancamentos.length ? lancamentos.map(item => `<tr><td>${item.criado_em?.slice(11,16) || '—'}</td><td>${item.tipo}</td><td>${item.descricao || item.categoria || '—'}</td><td>${item.forma_pagamento || '—'}</td><td><strong>${fmt(item.valor)}</strong></td></tr>`).join('') : '<tr><td colspan="5" style="text-align:center;padding:20px;color:#999">Sem lancamentos</td></tr>'}</tbody></table></div>
+    <div class="table-box"><div class="table-header"><span class="table-title">Historico de Caixas</span></div><table><thead><tr><th>Abertura</th><th>Status</th><th>Saldo Sistema</th><th>Saldo Informado</th><th>Diferenca</th></tr></thead><tbody>${historico.length ? historico.map(item => `<tr><td>${item.aberto_em}</td><td>${item.status}</td><td>${fmt(item.saldo_sistema_calculado || item.saldo_sistema)}</td><td>${item.saldo_final_informado != null ? fmt(item.saldo_final_informado) : '—'}</td><td>${item.diferenca != null ? fmt(item.diferenca) : '—'}</td></tr>`).join('') : '<tr><td colspan="5" style="text-align:center;padding:20px;color:#999">Sem historico</td></tr>'}</tbody></table></div>`;
+}
+
+function abrirModalAbrirCaixa() {
+  abrirModal(`<div class="modal-title">Abrir Caixa</div><div class="form-row"><div class="form-group-admin"><label>Saldo inicial</label><input type="number" id="cxSaldoInicial" step="0.01" value="0"></div><div class="form-group-admin"><label>Observacao</label><input type="text" id="cxObsAbertura" placeholder="Opcional"></div></div><div class="modal-btns"><button class="btn-cancel-modal" onclick="fecharModal()">Cancelar</button><button class="btn-save" onclick="salvarAberturaCaixa()">Abrir</button></div>`);
+}
+
+async function salvarAberturaCaixa() {
+  await api('/caixa/abrir', 'POST', { saldo_inicial: document.getElementById('cxSaldoInicial').value, observacao: document.getElementById('cxObsAbertura').value });
+  fecharModal();
+  toast('Caixa aberto com sucesso');
+  renderCaixa();
+}
+
+function abrirModalLancamentoCaixa(tipo) {
+  abrirModal(`<div class="modal-title">Novo Lancamento</div><div class="form-row"><div class="form-group-admin"><label>Tipo</label><select id="cxTipo"><option value="${tipo}">${tipo}</option></select></div><div class="form-group-admin"><label>Valor</label><input type="number" id="cxValor" step="0.01" placeholder="0,00"></div></div><div class="form-row"><div class="form-group-admin"><label>Categoria</label><input type="text" id="cxCategoria"></div><div class="form-group-admin"><label>Pagamento</label><input type="text" id="cxForma" placeholder="caixa"></div></div><div class="form-row full"><div class="form-group-admin"><label>Descricao</label><textarea id="cxDescricao"></textarea></div></div><div class="modal-btns"><button class="btn-cancel-modal" onclick="fecharModal()">Cancelar</button><button class="btn-save" onclick="salvarLancamentoCaixa()">Salvar</button></div>`);
+}
+
+async function salvarLancamentoCaixa() {
+  await api('/caixa/lancamentos', 'POST', { tipo: document.getElementById('cxTipo').value, valor: document.getElementById('cxValor').value, categoria: document.getElementById('cxCategoria').value, forma_pagamento: document.getElementById('cxForma').value, descricao: document.getElementById('cxDescricao').value });
+  fecharModal();
+  toast('Lancamento registrado');
+  renderCaixa();
+}
+
+function abrirModalFecharCaixa() {
+  const saldo = caixaStatusCache?.caixa?.saldo_sistema_calculado || 0;
+  abrirModal(`<div class="modal-title">Fechar Caixa</div><p style="font-size:12px;color:var(--txt2);margin-bottom:16px">Saldo do sistema: <strong>${fmt(saldo)}</strong></p><div class="form-row"><div class="form-group-admin"><label>Saldo contado</label><input type="number" id="cxSaldoFinal" step="0.01" value="${saldo}"></div><div class="form-group-admin"><label>Observacao</label><input type="text" id="cxObsFechamento"></div></div><div class="modal-btns"><button class="btn-cancel-modal" onclick="fecharModal()">Cancelar</button><button class="btn-save" onclick="salvarFechamentoCaixa()">Fechar</button></div>`);
+}
+
+async function salvarFechamentoCaixa() {
+  await api('/caixa/fechar', 'POST', { saldo_final_informado: document.getElementById('cxSaldoFinal').value, observacao: document.getElementById('cxObsFechamento').value });
+  fecharModal();
+  toast('Caixa fechado');
+  renderCaixa();
+}
+
+function agruparFichasPorPrato(fichas) {
+  const mapa = {};
+  fichas.forEach((item) => {
+    if (!mapa[item.prato_id]) mapa[item.prato_id] = { prato_id: item.prato_id, prato_nome: item.prato_nome, preco: item.preco, itens: [] };
+    if (item.insumo_id) mapa[item.prato_id].itens.push(item);
+  });
+  return Object.values(mapa);
+}
+
+async function renderEstoque() {
+  const c = document.getElementById('adminContent');
+  c.innerHTML = '<div style="text-align:center;padding:60px"><div style="width:40px;height:40px;border:3px solid rgba(184,151,58,.2);border-top-color:#B8973A;border-radius:50%;animation:sp .8s linear infinite;margin:0 auto"></div></div>';
+  const [resumo, insumos, pratos, fichas] = await Promise.all([api('/estoque/resumo'), api('/estoque/insumos'), api('/cardapio/admin/pratos'), api('/estoque/fichas')]);
+  estoqueCache = insumos;
+  pratosCache = pratos;
+  fichasCache = agruparFichasPorPrato(fichas);
+  c.innerHTML = `<div class="kpi-grid"><div class="kpi"><div class="kpi-label">Insumos ativos</div><div class="kpi-val">${resumo.ativos}</div></div><div class="kpi"><div class="kpi-label">Abaixo do minimo</div><div class="kpi-val">${resumo.abaixo_minimo}</div></div><div class="kpi"><div class="kpi-label">Zerados</div><div class="kpi-val">${resumo.zerados}</div></div><div class="kpi"><div class="kpi-label">Fichas tecnicas</div><div class="kpi-val">${fichasCache.filter(f => f.itens.length).length}</div></div></div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px"><button class="btn-action" onclick="abrirModalMovimentoEstoque()">Nova Movimentacao</button><button class="btn-action" onclick="abrirModalFichaTecnica()">Ficha Tecnica</button></div><div class="table-box"><div class="table-header"><span class="table-title">Insumos</span></div><table><thead><tr><th>Nome</th><th>Categoria</th><th>Saldo</th><th>Minimo</th><th>Custo medio</th><th>Acoes</th></tr></thead><tbody>${insumos.map(item => `<tr><td><strong>${item.nome}</strong></td><td>${item.categoria || '—'}</td><td>${fmtQtd(item.estoque_atual)} ${item.unidade}</td><td>${fmtQtd(item.estoque_minimo)} ${item.unidade}</td><td>${fmt(item.custo_medio || 0)}</td><td style="display:flex;gap:6px"><button onclick="abrirModalEditarInsumo(${item.id})" style="padding:5px 12px;background:var(--gd2);color:var(--gold2);border:none;border-radius:4px;font-size:11px;cursor:pointer">Editar</button><button onclick="abrirModalMovimentoEstoque(${item.id})" style="padding:5px 12px;background:var(--gd);color:var(--gold2);border:none;border-radius:4px;font-size:11px;cursor:pointer">Movimento</button></td></tr>`).join('')}</tbody></table></div><div class="table-box"><div class="table-header"><span class="table-title">Fichas Tecnicas</span></div><table><thead><tr><th>Prato</th><th>Preco</th><th>Consumo</th><th>Acoes</th></tr></thead><tbody>${fichasCache.map(ficha => `<tr><td><strong>${ficha.prato_nome}</strong></td><td>${fmt(ficha.preco || 0)}</td><td>${ficha.itens.length ? ficha.itens.map(i => `${i.insumo_nome} (${fmtQtd(i.quantidade)} ${i.unidade})`).join(', ') : 'Sem ficha'}</td><td><button onclick="abrirModalFichaTecnica(${ficha.prato_id})" style="padding:5px 12px;background:var(--gd2);color:var(--gold2);border:none;border-radius:4px;font-size:11px;cursor:pointer">Editar ficha</button></td></tr>`).join('')}</tbody></table></div>`;
+}
+
+function abrirModalInsumo() {
+  abrirModal(`<div class="modal-title">Novo Insumo</div><div class="form-row"><div class="form-group-admin"><label>Nome</label><input type="text" id="insNome"></div><div class="form-group-admin"><label>Unidade</label><input type="text" id="insUnidade" value="kg"></div></div><div class="form-row"><div class="form-group-admin"><label>Categoria</label><input type="text" id="insCategoria"></div><div class="form-group-admin"><label>Saldo inicial</label><input type="number" id="insSaldo" step="0.01" value="0"></div></div><div class="form-row"><div class="form-group-admin"><label>Estoque minimo</label><input type="number" id="insMinimo" step="0.01" value="0"></div><div class="form-group-admin"><label>Custo medio</label><input type="number" id="insCusto" step="0.01" value="0"></div></div><div class="modal-btns"><button class="btn-cancel-modal" onclick="fecharModal()">Cancelar</button><button class="btn-save" onclick="salvarInsumo()">Salvar</button></div>`);
+}
+
+async function salvarInsumo() {
+  await api('/estoque/insumos', 'POST', { nome: document.getElementById('insNome').value, unidade: document.getElementById('insUnidade').value, categoria: document.getElementById('insCategoria').value, estoque_atual: document.getElementById('insSaldo').value, estoque_minimo: document.getElementById('insMinimo').value, custo_medio: document.getElementById('insCusto').value });
+  fecharModal();
+  toast('Insumo criado');
+  renderEstoque();
+}
+
+function abrirModalEditarInsumo(id) {
+  const item = estoqueCache.find(i => i.id === id);
+  if (!item) return;
+  abrirModal(`<div class="modal-title">Editar Insumo</div><div class="form-row"><div class="form-group-admin"><label>Nome</label><input type="text" id="eiNome" value="${item.nome}"></div><div class="form-group-admin"><label>Unidade</label><input type="text" id="eiUnidade" value="${item.unidade}"></div></div><div class="form-row"><div class="form-group-admin"><label>Categoria</label><input type="text" id="eiCategoria" value="${item.categoria || ''}"></div><div class="form-group-admin"><label>Estoque minimo</label><input type="number" id="eiMinimo" step="0.01" value="${item.estoque_minimo || 0}"></div></div><div class="form-row"><div class="form-group-admin"><label>Custo medio</label><input type="number" id="eiCusto" step="0.01" value="${item.custo_medio || 0}"></div><div class="form-group-admin"><label>Ativo</label><select id="eiAtivo"><option value="1" ${item.ativo ? 'selected' : ''}>Sim</option><option value="0" ${!item.ativo ? 'selected' : ''}>Nao</option></select></div></div><div class="modal-btns"><button class="btn-cancel-modal" onclick="fecharModal()">Cancelar</button><button class="btn-save" onclick="salvarEdicaoInsumo(${item.id})">Salvar</button></div>`);
+}
+
+async function salvarEdicaoInsumo(id) {
+  await api('/estoque/insumos/' + id, 'PUT', { nome: document.getElementById('eiNome').value, unidade: document.getElementById('eiUnidade').value, categoria: document.getElementById('eiCategoria').value, estoque_minimo: document.getElementById('eiMinimo').value, custo_medio: document.getElementById('eiCusto').value, ativo: document.getElementById('eiAtivo').value === '1' });
+  fecharModal();
+  toast('Insumo atualizado');
+  renderEstoque();
+}
+
+function abrirModalMovimentoEstoque(insumoId=null) {
+  abrirModal(`<div class="modal-title">Movimentacao de Estoque</div><div class="form-row"><div class="form-group-admin"><label>Insumo</label><select id="mvInsumo">${estoqueCache.map(i => `<option value="${i.id}" ${i.id===insumoId ? 'selected' : ''}>${i.nome}</option>`).join('')}</select></div><div class="form-group-admin"><label>Tipo</label><select id="mvTipo"><option value="entrada">Entrada</option><option value="inventario">Inventario</option><option value="perda">Perda</option><option value="ajuste">Ajuste</option></select></div></div><div class="form-row"><div class="form-group-admin"><label>Quantidade</label><input type="number" id="mvQtd" step="0.01"></div><div class="form-group-admin"><label>Custo unitario</label><input type="number" id="mvCusto" step="0.01"></div></div><div class="form-row full"><div class="form-group-admin"><label>Observacao</label><textarea id="mvObs"></textarea></div></div><div class="modal-btns"><button class="btn-cancel-modal" onclick="fecharModal()">Cancelar</button><button class="btn-save" onclick="salvarMovimentoEstoque()">Salvar</button></div>`);
+}
+
+async function salvarMovimentoEstoque() {
+  await api('/estoque/movimentos', 'POST', { insumo_id: document.getElementById('mvInsumo').value, tipo: document.getElementById('mvTipo').value, quantidade: document.getElementById('mvQtd').value, custo_unit: document.getElementById('mvCusto').value, observacao: document.getElementById('mvObs').value });
+  fecharModal();
+  toast('Movimentacao registrada');
+  renderEstoque();
+}
+
+function abrirModalFichaTecnica(pratoId=null) {
+  const prato = pratosCache.find(p => p.id === pratoId) || pratosCache[0];
+  const ficha = fichasCache.find(f => f.prato_id === prato?.id);
+  const linhas = Array.from({ length: 4 }, (_, index) => ficha?.itens[index] || null);
+  abrirModal(`<div class="modal-title">Ficha Tecnica</div><div class="form-row full"><div class="form-group-admin"><label>Prato</label><select id="ftPrato">${pratosCache.map(p => `<option value="${p.id}" ${p.id===prato?.id ? 'selected' : ''}>${p.nome}</option>`).join('')}</select></div></div>${linhas.map((item, index) => `<div class="form-row"><div class="form-group-admin"><label>Insumo ${index + 1}</label><select id="ftInsumo${index}"><option value="">Selecione</option>${estoqueCache.map(i => `<option value="${i.id}" ${item?.insumo_id===i.id ? 'selected' : ''}>${i.nome}</option>`).join('')}</select></div><div class="form-group-admin"><label>Qtd</label><input type="number" id="ftQtd${index}" step="0.01" value="${item?.quantidade || ''}"></div></div>`).join('')}<div class="modal-btns"><button class="btn-cancel-modal" onclick="fecharModal()">Cancelar</button><button class="btn-save" onclick="salvarFichaTecnica()">Salvar</button></div>`);
+}
+
+async function salvarFichaTecnica() {
+  const itens = [];
+  for (let i = 0; i < 4; i++) {
+    const insumo = document.getElementById(`ftInsumo${i}`).value;
+    const quantidade = document.getElementById(`ftQtd${i}`).value;
+    if (insumo && quantidade) itens.push({ insumo_id: Number(insumo), quantidade: Number(quantidade) });
+  }
+  await api('/estoque/fichas/' + document.getElementById('ftPrato').value, 'PUT', { itens });
+  fecharModal();
+  toast('Ficha tecnica atualizada');
+  renderEstoque();
+}
+
+async function renderFiscal() {
+  const c = document.getElementById('adminContent');
+  const hoje = new Date();
+  const inicioMes = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2, '0')}-01`;
+  const ultimoDia = String(new Date(hoje.getFullYear(), hoje.getMonth()+1, 0).getDate()).padStart(2, '0');
+  const fimMes = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2, '0')}-${ultimoDia}`;
+  const [config, resumo, lancamentos] = await Promise.all([api('/fiscal/config'), api(`/fiscal/resumo?data_inicial=${inicioMes}&data_final=${fimMes}`), api(`/fiscal/lancamentos?data_inicial=${inicioMes}&data_final=${fimMes}`)]);
+  fiscalConfigCache = config;
+  c.innerHTML = `<div class="kpi-grid"><div class="kpi"><div class="kpi-label">Documentos</div><div class="kpi-val">${resumo.resumo.documentos}</div></div><div class="kpi"><div class="kpi-label">Faturamento bruto</div><div class="kpi-val">${fmt(resumo.resumo.faturamento_bruto)}</div></div><div class="kpi"><div class="kpi-label">Imposto estimado</div><div class="kpi-val">${fmt(resumo.resumo.impostos_estimados)}</div></div><div class="kpi"><div class="kpi-label">Cancelados</div><div class="kpi-val">${fmt(resumo.resumo.cancelados)}</div></div></div><div class="chart-box" style="margin-bottom:16px"><div class="chart-title">Configuracao Fiscal</div><p style="font-size:13px;line-height:1.8;color:var(--txt2)"><strong>Razao social:</strong> ${config?.razao_social || 'Nao informado'}<br><strong>CNPJ:</strong> ${config?.cnpj || 'Nao informado'}<br><strong>Regime:</strong> ${config?.regime_tributario || 'Nao informado'}<br><strong>Aliquota estimada:</strong> ${fmtQtd(config?.aliquota_estimada || 0)}%<br><strong>Ambiente:</strong> ${config?.ambiente || 'gerencial'}</p><p style="font-size:12px;color:var(--txt2);margin-top:10px">Controle fiscal gerencial. A emissao oficial depende da integracao com o emissor fiscal escolhido.</p></div><div class="table-box"><div class="table-header"><span class="table-title">Lancamentos Fiscais do Mes</span></div><table><thead><tr><th>Documento</th><th>Situacao</th><th>Mesa</th><th>Pagamento</th><th>Base</th><th>Imposto</th></tr></thead><tbody>${lancamentos.length ? lancamentos.map(item => `<tr><td>${item.documento_numero}</td><td>${item.situacao}</td><td>${item.mesa_numero}</td><td>${item.forma_pagamento || '—'}</td><td>${fmt(item.base_calculo)}</td><td>${fmt(item.valor_imposto)}</td></tr>`).join('') : '<tr><td colspan="6" style="text-align:center;padding:20px;color:#999">Sem lancamentos fiscais</td></tr>'}</tbody></table></div>`;
+}
+
+function abrirModalFiscalConfig() {
+  const config = fiscalConfigCache || {};
+  abrirModal(`<div class="modal-title">Configuracao Fiscal</div><div class="form-row"><div class="form-group-admin"><label>Razao social</label><input type="text" id="fcRazao" value="${config.razao_social || ''}"></div><div class="form-group-admin"><label>CNPJ</label><input type="text" id="fcCnpj" value="${config.cnpj || ''}"></div></div><div class="form-row"><div class="form-group-admin"><label>Regime tributario</label><input type="text" id="fcRegime" value="${config.regime_tributario || 'Simples Nacional'}"></div><div class="form-group-admin"><label>Aliquota estimada (%)</label><input type="number" id="fcAliquota" step="0.01" value="${config.aliquota_estimada || 6}"></div></div><div class="form-row full"><div class="form-group-admin"><label>Ambiente</label><select id="fcAmbiente"><option value="gerencial" ${(config.ambiente || 'gerencial') === 'gerencial' ? 'selected' : ''}>gerencial</option><option value="producao" ${config.ambiente === 'producao' ? 'selected' : ''}>producao</option></select></div></div><div class="modal-btns"><button class="btn-cancel-modal" onclick="fecharModal()">Cancelar</button><button class="btn-save" onclick="salvarFiscalConfig()">Salvar</button></div>`);
+}
+
+async function salvarFiscalConfig() {
+  await api('/fiscal/config', 'PUT', { razao_social: document.getElementById('fcRazao').value, cnpj: document.getElementById('fcCnpj').value, regime_tributario: document.getElementById('fcRegime').value, aliquota_estimada: document.getElementById('fcAliquota').value, ambiente: document.getElementById('fcAmbiente').value });
+  fecharModal();
+  toast('Configuracao fiscal atualizada');
+  renderFiscal();
+}
+
 function abrirModal(html) {
   document.getElementById('adminModalContent').innerHTML = html;
   document.getElementById('adminModal').classList.add('open');

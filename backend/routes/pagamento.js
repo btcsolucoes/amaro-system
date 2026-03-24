@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const { db } = require('../db/database');
+const { aprovarPedido } = require('../services/operacao');
 
 // POST /api/pagamento/pix — gera PIX
 router.post('/pix', async (req, res) => {
@@ -63,9 +64,7 @@ router.post('/simular', (req, res) => {
   const pedido = db.prepare('SELECT * FROM pedidos WHERE id=?').get(pedido_id);
   if (!pedido) return res.status(404).json({ erro: 'Pedido não encontrado' });
 
-  db.prepare(
-    "UPDATE pedidos SET status=?,forma_pagamento=?,pagamento_status=?,atualizado_em=datetime('now','localtime') WHERE id=?"
-  ).run('confirmado', metodo || 'simulado', 'aprovado', pedido_id);
+  aprovarPedido(pedido_id, metodo || 'simulado');
 
   db.prepare(
     'INSERT INTO pagamentos (pedido_id,provider,provider_id,metodo,valor,status) VALUES (?,?,?,?,?,?)'
@@ -89,7 +88,7 @@ router.post('/webhook', (req, res) => {
     const pag = db.prepare("SELECT * FROM pagamentos WHERE provider_id=?").get(String(data.id));
     if (pag) {
       db.prepare("UPDATE pagamentos SET status='aprovado' WHERE id=?").run(pag.id);
-      db.prepare("UPDATE pedidos SET pagamento_status='aprovado',status='confirmado' WHERE id=?").run(pag.pedido_id);
+      aprovarPedido(pag.pedido_id, pag.metodo || 'pix');
     }
   }
   res.sendStatus(200);

@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { db } = require('../db/database');
 const auth = require('../middleware/auth');
+const { getCaixaAberto, resumoCaixa } = require('../services/operacao');
 
 // GET /api/dashboard — todos os dados do dashboard
 router.get('/', auth, (req, res) => {
@@ -85,6 +86,17 @@ router.get('/', auth, (req, res) => {
     GROUP BY status
   `).all();
 
+  const estoqueResumo = db.prepare(`
+    SELECT
+      COUNT(*) AS ativos,
+      SUM(CASE WHEN estoque_atual <= estoque_minimo THEN 1 ELSE 0 END) AS abaixo_minimo,
+      SUM(CASE WHEN estoque_atual <= 0 THEN 1 ELSE 0 END) AS zerados
+    FROM estoque_insumos
+    WHERE ativo = 1
+  `).get();
+
+  const caixaAberto = getCaixaAberto();
+
   res.json({
     resumo: {
       hoje: fatHoje,
@@ -100,6 +112,10 @@ router.get('/', auth, (req, res) => {
     rankings: {
       pratos: maisVendidos,
       categorias: catMaisVendidas
+    },
+    operacao: {
+      estoque: estoqueResumo,
+      caixa: caixaAberto ? resumoCaixa(caixaAberto.id) : null
     },
     pedidos_recentes: recentes,
     status_ativos: statusAtivos

@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { db } = require('../db/database');
 const auth = require('../middleware/auth');
 const { enviarWhatsApp } = require('../services/whatsapp');
+const { aprovarPedido, cancelarPedidoOperacao } = require('../services/operacao');
 
 // ─────────────────────────────────────────────────
 // PÚBLICO — criar pedido
@@ -60,8 +61,10 @@ router.post('/:id/confirmar', async (req, res) => {
   if (!pedido) return res.status(404).json({ erro: 'Pedido não encontrado' });
 
   db.prepare(
-    'UPDATE pedidos SET status=?,forma_pagamento=?,pagamento_id=?,pagamento_status=?,atualizado_em=datetime("now","localtime") WHERE id=?'
-  ).run('confirmado', forma_pagamento, pagamento_id || null, 'aprovado', req.params.id);
+    'UPDATE pedidos SET pagamento_id=?,atualizado_em=datetime("now","localtime") WHERE id=?'
+  ).run(pagamento_id || null, req.params.id);
+
+  aprovarPedido(req.params.id, forma_pagamento);
 
   const itens = db.prepare('SELECT * FROM itens_pedido WHERE pedido_id = ?').all(req.params.id);
 
@@ -123,9 +126,18 @@ router.put('/admin/:id/status', auth, (req, res) => {
   if (!validos.includes(status))
     return res.status(400).json({ erro: 'Status inválido' });
 
-  db.prepare(
-    'UPDATE pedidos SET status=?,atualizado_em=datetime("now","localtime") WHERE id=?'
-  ).run(status, req.params.id);
+  const pedido = db.prepare('SELECT * FROM pedidos WHERE id = ?').get(req.params.id);
+  if (!pedido) return res.status(404).json({ erro: 'Pedido nÃ£o encontrado' });
+
+  if (status === 'cancelado') {
+    cancelarPedidoOperacao(req.params.id, req.admin.id);
+  } else if (status === 'confirmado' && pedido.pagamento_status !== 'aprovado') {
+    aprovarPedido(req.params.id, pedido.forma_pagamento || 'manual', req.admin.id);
+  } else {
+    db.prepare(
+      'UPDATE pedidos SET status=?,atualizado_em=datetime("now","localtime") WHERE id=?'
+    ).run(status, req.params.id);
+  }
 
   res.json({ ok: true });
 });

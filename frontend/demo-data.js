@@ -86,6 +86,84 @@
     }
   ];
 
+  const demoEstoque = [
+    { id: 1, nome: 'Carne de sol', unidade: 'kg', categoria: 'Carnes', estoque_atual: 5.2, estoque_minimo: 1.5, custo_medio: 44, ativo: 1 },
+    { id: 2, nome: 'Camarao', unidade: 'kg', categoria: 'Pescados', estoque_atual: 3.8, estoque_minimo: 1.2, custo_medio: 58, ativo: 1 },
+    { id: 3, nome: 'Frango', unidade: 'kg', categoria: 'Aves', estoque_atual: 4.6, estoque_minimo: 1.5, custo_medio: 21, ativo: 1 },
+    { id: 4, nome: 'Macaxeira', unidade: 'kg', categoria: 'Hortifruti', estoque_atual: 8.2, estoque_minimo: 2, custo_medio: 8, ativo: 1 },
+    { id: 5, nome: 'Queijo coalho', unidade: 'kg', categoria: 'Laticinios', estoque_atual: 1.4, estoque_minimo: 0.8, custo_medio: 32, ativo: 1 },
+    { id: 6, nome: 'Goma de tapioca', unidade: 'kg', categoria: 'Secos', estoque_atual: 4.9, estoque_minimo: 1.5, custo_medio: 12, ativo: 1 },
+    { id: 7, nome: 'Flocao de milho', unidade: 'kg', categoria: 'Secos', estoque_atual: 0.9, estoque_minimo: 1.2, custo_medio: 7, ativo: 1 },
+    { id: 8, nome: 'Coca Cola lata', unidade: 'un', categoria: 'Bebidas', estoque_atual: 18, estoque_minimo: 12, custo_medio: 3.1, ativo: 1 }
+  ];
+
+  const demoFichas = [
+    { prato_id: 10, prato_nome: 'Carne de Sol Atoladinha', preco: 32, insumo_id: 1, insumo_nome: 'Carne de sol', unidade: 'kg', quantidade: 0.18 },
+    { prato_id: 10, prato_nome: 'Carne de Sol Atoladinha', preco: 32, insumo_id: 4, insumo_nome: 'Macaxeira', unidade: 'kg', quantidade: 0.18 },
+    { prato_id: 16, prato_nome: 'Tapioca Cais', preco: 19, insumo_id: 3, insumo_nome: 'Frango', unidade: 'kg', quantidade: 0.08 },
+    { prato_id: 16, prato_nome: 'Tapioca Cais', preco: 19, insumo_id: 6, insumo_nome: 'Goma de tapioca', unidade: 'kg', quantidade: 0.13 },
+    { prato_id: 19, prato_nome: 'Cuscuz Nordestao', preco: 19, insumo_id: 7, insumo_nome: 'Flocao de milho', unidade: 'kg', quantidade: 0.12 },
+    { prato_id: 26, prato_nome: 'Coca Cola Lata', preco: 7, insumo_id: 8, insumo_nome: 'Coca Cola lata', unidade: 'un', quantidade: 1 }
+  ];
+
+  const demoCaixas = [
+    {
+      id: 1,
+      status: 'aberto',
+      saldo_inicial: 200,
+      saldo_sistema: 510,
+      saldo_sistema_calculado: 510,
+      aberto_em: '2026-03-24 08:00:00',
+      saldo_final_informado: null,
+      diferenca: 0,
+      totais: { venda: 410, despesa: 40, sangria: 60, suprimento: 0, estorno: 0 }
+    },
+    {
+      id: 2,
+      status: 'fechado',
+      saldo_inicial: 150,
+      saldo_sistema: 392,
+      saldo_sistema_calculado: 392,
+      aberto_em: '2026-03-23 08:00:00',
+      saldo_final_informado: 392,
+      diferenca: 0,
+      totais: { venda: 312, despesa: 20, sangria: 50, suprimento: 0, estorno: 0 }
+    }
+  ];
+
+  const demoCaixaLancamentos = [
+    { id: 1, caixa_id: 1, tipo: 'venda', descricao: 'Pedido #101 mesa 3', forma_pagamento: 'pix', valor: 78, criado_em: '2026-03-24 09:16:00' },
+    { id: 2, caixa_id: 1, tipo: 'venda', descricao: 'Pedido #102 mesa 5', forma_pagamento: 'cartao', valor: 70, criado_em: '2026-03-24 10:03:00' },
+    { id: 3, caixa_id: 1, tipo: 'despesa', descricao: 'Compra emergencial de gelo', forma_pagamento: 'caixa', valor: 40, criado_em: '2026-03-24 10:20:00' },
+    { id: 4, caixa_id: 1, tipo: 'venda', descricao: 'Pedido #103 mesa 1', forma_pagamento: 'pix', valor: 53, criado_em: '2026-03-24 10:41:00' },
+    { id: 5, caixa_id: 1, tipo: 'sangria', descricao: 'Retirada para troco externo', forma_pagamento: 'caixa', valor: 60, criado_em: '2026-03-24 11:05:00' }
+  ];
+
+  const demoFiscalConfig = {
+    id: 1,
+    razao_social: 'Amaro Cafe',
+    cnpj: '12.345.678/0001-90',
+    regime_tributario: 'Simples Nacional',
+    aliquota_estimada: 6,
+    ambiente: 'gerencial'
+  };
+
+  const demoFiscalLancamentos = demoOrders.map((order, index) => ({
+    id: index + 1,
+    pedido_id: order.id,
+    caixa_id: 1,
+    documento_tipo: 'gerencial',
+    documento_numero: `AMR-${String(order.id).padStart(6, '0')}`,
+    situacao: order.status === 'cancelado' ? 'cancelado' : 'registrado',
+    base_calculo: order.total,
+    aliquota: 6,
+    valor_imposto: Number((order.total * 0.06).toFixed(2)),
+    valor_liquido: Number((order.total * 0.94).toFixed(2)),
+    mesa_numero: order.mesa_numero,
+    forma_pagamento: order.forma_pagamento,
+    criado_em: order.criado_em
+  }));
+
   function clone(value) {
     return JSON.parse(JSON.stringify(value));
   }
@@ -156,6 +234,14 @@
           { dia: '2026-03-24', valor: totalHoje }
         ],
         por_pagamento: Object.entries(pagamentos).map(([forma_pagamento, quantidade]) => ({ forma_pagamento, quantidade }))
+      },
+      operacao: {
+        estoque: {
+          ativos: demoEstoque.length,
+          abaixo_minimo: demoEstoque.filter((item) => item.estoque_atual <= item.estoque_minimo).length,
+          zerados: demoEstoque.filter((item) => item.estoque_atual <= 0).length
+        },
+        caixa: clone(demoCaixas[0])
       }
     };
   }
@@ -186,6 +272,51 @@
     },
     get mesas() {
       return Array.from({ length: 12 }, (_, index) => ({ numero: index + 1 }));
+    },
+    get estoqueResumo() {
+      return {
+        ativos: demoEstoque.length,
+        abaixo_minimo: demoEstoque.filter((item) => item.estoque_atual <= item.estoque_minimo).length,
+        zerados: demoEstoque.filter((item) => item.estoque_atual <= 0).length
+      };
+    },
+    get estoqueInsumos() {
+      return clone(demoEstoque);
+    },
+    get estoqueFichas() {
+      return clone(demoFichas);
+    },
+    get caixaStatus() {
+      return { aberto: true, caixa: clone(demoCaixas[0]) };
+    },
+    get caixaHistorico() {
+      return clone(demoCaixas);
+    },
+    get caixaLancamentos() {
+      return clone(demoCaixaLancamentos);
+    },
+    get fiscalConfig() {
+      return clone(demoFiscalConfig);
+    },
+    get fiscalResumo() {
+      return {
+        resumo: {
+          documentos: demoFiscalLancamentos.length,
+          faturamento_bruto: demoFiscalLancamentos.reduce((sum, item) => sum + item.base_calculo, 0),
+          impostos_estimados: demoFiscalLancamentos.reduce((sum, item) => sum + item.valor_imposto, 0),
+          cancelados: demoFiscalLancamentos.filter((item) => item.situacao === 'cancelado').reduce((sum, item) => sum + item.base_calculo, 0)
+        },
+        por_pagamento: Object.entries(demoFiscalLancamentos.reduce((acc, item) => {
+          const key = item.forma_pagamento || 'nao informado';
+          acc[key] = acc[key] || { forma_pagamento: key, quantidade: 0, total: 0 };
+          acc[key].quantidade += 1;
+          acc[key].total += item.base_calculo;
+          return acc;
+        }, {})).map(([, value]) => value)
+      };
+    },
+    get fiscalLancamentos() {
+      return clone(demoFiscalLancamentos);
     },
     orders: clone(demoOrders),
     get dashboard() {

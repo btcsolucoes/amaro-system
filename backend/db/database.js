@@ -33,6 +33,150 @@ const PHOTO_BY_PRATO = {
   'Coxinha de Camarão com Requeijão': 'coxinha-de-camarao-com-requeijao.jpg'
 };
 
+const DEFAULT_INSUMOS = [
+  { nome: 'Carpaccio bovino', unidade: 'kg', categoria: 'Carnes', estoque_atual: 3, estoque_minimo: 0.8, custo_medio: 68 },
+  { nome: 'Peixe branco', unidade: 'kg', categoria: 'Pescados', estoque_atual: 5, estoque_minimo: 1.2, custo_medio: 39 },
+  { nome: 'Carne de sol', unidade: 'kg', categoria: 'Carnes', estoque_atual: 6, estoque_minimo: 1.5, custo_medio: 44 },
+  { nome: 'Charque', unidade: 'kg', categoria: 'Carnes', estoque_atual: 4, estoque_minimo: 1, custo_medio: 42 },
+  { nome: 'Camarao', unidade: 'kg', categoria: 'Pescados', estoque_atual: 5, estoque_minimo: 1.2, custo_medio: 58 },
+  { nome: 'Cupim', unidade: 'kg', categoria: 'Carnes', estoque_atual: 4, estoque_minimo: 1, custo_medio: 36 },
+  { nome: 'Maminha', unidade: 'kg', categoria: 'Carnes', estoque_atual: 4, estoque_minimo: 1, custo_medio: 41 },
+  { nome: 'Contra file', unidade: 'kg', categoria: 'Carnes', estoque_atual: 4, estoque_minimo: 1, custo_medio: 39 },
+  { nome: 'Frango', unidade: 'kg', categoria: 'Aves', estoque_atual: 6, estoque_minimo: 1.5, custo_medio: 21 },
+  { nome: 'Macaxeira', unidade: 'kg', categoria: 'Hortifruti', estoque_atual: 10, estoque_minimo: 2, custo_medio: 8 },
+  { nome: 'Queijo coalho', unidade: 'kg', categoria: 'Laticinios', estoque_atual: 3, estoque_minimo: 0.8, custo_medio: 32 },
+  { nome: 'Queijo manteiga', unidade: 'kg', categoria: 'Laticinios', estoque_atual: 2.5, estoque_minimo: 0.6, custo_medio: 34 },
+  { nome: 'Queijo mussarela', unidade: 'kg', categoria: 'Laticinios', estoque_atual: 3, estoque_minimo: 0.8, custo_medio: 28 },
+  { nome: 'Parmesao', unidade: 'kg', categoria: 'Laticinios', estoque_atual: 2, estoque_minimo: 0.5, custo_medio: 44 },
+  { nome: 'Linguine', unidade: 'kg', categoria: 'Massas', estoque_atual: 4, estoque_minimo: 1, custo_medio: 14 },
+  { nome: 'Goma de tapioca', unidade: 'kg', categoria: 'Secos', estoque_atual: 6, estoque_minimo: 1.5, custo_medio: 12 },
+  { nome: 'Flocao de milho', unidade: 'kg', categoria: 'Secos', estoque_atual: 5, estoque_minimo: 1.2, custo_medio: 7 },
+  { nome: 'Linguica matuta', unidade: 'kg', categoria: 'Carnes', estoque_atual: 3, estoque_minimo: 0.8, custo_medio: 29 },
+  { nome: 'Couve flor', unidade: 'kg', categoria: 'Hortifruti', estoque_atual: 3, estoque_minimo: 0.8, custo_medio: 13 },
+  { nome: 'Ovos', unidade: 'un', categoria: 'Mercearia', estoque_atual: 60, estoque_minimo: 24, custo_medio: 0.9 },
+  { nome: 'H2O Limoneto 500ml', unidade: 'un', categoria: 'Bebidas', estoque_atual: 36, estoque_minimo: 12, custo_medio: 3.2 },
+  { nome: 'Guarana Antarctica lata 350ml', unidade: 'un', categoria: 'Bebidas', estoque_atual: 48, estoque_minimo: 12, custo_medio: 2.8 },
+  { nome: 'Coca Cola lata', unidade: 'un', categoria: 'Bebidas', estoque_atual: 48, estoque_minimo: 12, custo_medio: 3.1 },
+  { nome: 'Coca Cola Zero lata 350ml', unidade: 'un', categoria: 'Bebidas', estoque_atual: 48, estoque_minimo: 12, custo_medio: 3.1 }
+];
+
+const DEFAULT_FICHAS = {
+  'Carpaccio Ã  Bom Jesus': [
+    { insumo: 'Carpaccio bovino', quantidade: 0.18 },
+    { insumo: 'Parmesao', quantidade: 0.03 }
+  ],
+  'Stick de Peixe Crocante': [
+    { insumo: 'Peixe branco', quantidade: 0.22 }
+  ],
+  'Trio Ternurinha': [
+    { insumo: 'Charque', quantidade: 0.12 },
+    { insumo: 'Macaxeira', quantidade: 0.2 },
+    { insumo: 'Queijo coalho', quantidade: 0.05 }
+  ],
+  'Croqueta de Cupim': [
+    { insumo: 'Cupim', quantidade: 0.15 }
+  ],
+  'CamarÃ£o Cais do SertÃ£o': [
+    { insumo: 'Camarao', quantidade: 0.18 },
+    { insumo: 'Linguine', quantidade: 0.12 },
+    { insumo: 'Parmesao', quantidade: 0.02 }
+  ],
+  'CamarÃ£o Ã  Imperador': [
+    { insumo: 'Camarao', quantidade: 0.2 },
+    { insumo: 'Macaxeira', quantidade: 0.15 }
+  ],
+  'Nhoque de Macaxeira Crocante': [
+    { insumo: 'Macaxeira', quantidade: 0.22 },
+    { insumo: 'Queijo manteiga', quantidade: 0.05 },
+    { insumo: 'Linguica matuta', quantidade: 0.08 }
+  ],
+  'Charque Brejeira': [
+    { insumo: 'Charque', quantidade: 0.16 },
+    { insumo: 'Queijo coalho', quantidade: 0.04 },
+    { insumo: 'Flocao de milho', quantidade: 0.08 }
+  ],
+  'Maminha do Apolo': [
+    { insumo: 'Maminha', quantidade: 0.2 }
+  ],
+  'Carne de Sol Atoladinha': [
+    { insumo: 'Carne de sol', quantidade: 0.18 },
+    { insumo: 'Macaxeira', quantidade: 0.18 },
+    { insumo: 'Queijo coalho', quantidade: 0.03 }
+  ],
+  'Carne a Parmeggiano': [
+    { insumo: 'Contra file', quantidade: 0.2 },
+    { insumo: 'Linguine', quantidade: 0.1 },
+    { insumo: 'Queijo mussarela', quantidade: 0.04 }
+  ],
+  'Frango Ã  Parmeggiano': [
+    { insumo: 'Frango', quantidade: 0.22 },
+    { insumo: 'Linguine', quantidade: 0.1 },
+    { insumo: 'Queijo mussarela', quantidade: 0.04 }
+  ],
+  'Cupim da Guia': [
+    { insumo: 'Cupim', quantidade: 0.2 },
+    { insumo: 'Macaxeira', quantidade: 0.14 }
+  ],
+  'Franguinho da Moeda': [
+    { insumo: 'Frango', quantidade: 0.22 },
+    { insumo: 'Ovos', quantidade: 1 }
+  ],
+  'Couve Flor Grelhada': [
+    { insumo: 'Couve flor', quantidade: 0.26 }
+  ],
+  'Tapioca Cais': [
+    { insumo: 'Goma de tapioca', quantidade: 0.13 },
+    { insumo: 'Frango', quantidade: 0.08 },
+    { insumo: 'Queijo coalho', quantidade: 0.05 },
+    { insumo: 'Parmesao', quantidade: 0.01 }
+  ],
+  'Tapioca Aurora': [
+    { insumo: 'Goma de tapioca', quantidade: 0.13 },
+    { insumo: 'Queijo coalho', quantidade: 0.05 },
+    { insumo: 'Charque', quantidade: 0.07 }
+  ],
+  'Tapioca LeÃ£o do Norte': [
+    { insumo: 'Goma de tapioca', quantidade: 0.13 },
+    { insumo: 'Carne de sol', quantidade: 0.08 },
+    { insumo: 'Queijo coalho', quantidade: 0.04 }
+  ],
+  'Cuscuz NordestÃ£o': [
+    { insumo: 'Flocao de milho', quantidade: 0.12 },
+    { insumo: 'Queijo manteiga', quantidade: 0.04 },
+    { insumo: 'Linguica matuta', quantidade: 0.07 }
+  ],
+  'Cuscuz Quarentinha': [
+    { insumo: 'Flocao de milho', quantidade: 0.12 },
+    { insumo: 'Queijo coalho', quantidade: 0.04 },
+    { insumo: 'Ovos', quantidade: 1 },
+    { insumo: 'Charque', quantidade: 0.06 }
+  ],
+  'Cuscuz Arsenal': [
+    { insumo: 'Flocao de milho', quantidade: 0.12 },
+    { insumo: 'Queijo mussarela', quantidade: 0.04 },
+    { insumo: 'Frango', quantidade: 0.08 }
+  ],
+  'Coxinha de Frango': [
+    { insumo: 'Frango', quantidade: 0.06 }
+  ],
+  'Coxinha de CamarÃ£o com RequeijÃ£o': [
+    { insumo: 'Camarao', quantidade: 0.05 },
+    { insumo: 'Queijo manteiga', quantidade: 0.02 }
+  ],
+  'H2O Limoneto Pet 500ml': [
+    { insumo: 'H2O Limoneto 500ml', quantidade: 1 }
+  ],
+  'GuaranÃ¡ Antartica Lata 350ml': [
+    { insumo: 'Guarana Antarctica lata 350ml', quantidade: 1 }
+  ],
+  'Coca Cola Lata': [
+    { insumo: 'Coca Cola lata', quantidade: 1 }
+  ],
+  'Coca Cola Zero Lata 350ml': [
+    { insumo: 'Coca Cola Zero lata 350ml', quantidade: 1 }
+  ]
+};
+
 // Performance
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
@@ -121,14 +265,113 @@ function init() {
       payload       TEXT,
       criado_em     TEXT DEFAULT (datetime('now','localtime'))
     );
+
+    CREATE TABLE IF NOT EXISTS estoque_insumos (
+      id            INTEGER PRIMARY KEY AUTOINCREMENT,
+      nome          TEXT NOT NULL UNIQUE,
+      unidade       TEXT NOT NULL DEFAULT 'un',
+      categoria     TEXT,
+      estoque_atual REAL NOT NULL DEFAULT 0,
+      estoque_minimo REAL NOT NULL DEFAULT 0,
+      custo_medio   REAL NOT NULL DEFAULT 0,
+      ativo         INTEGER DEFAULT 1,
+      criado_em     TEXT DEFAULT (datetime('now','localtime'))
+    );
+
+    CREATE TABLE IF NOT EXISTS fichas_tecnicas (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      prato_id   INTEGER NOT NULL REFERENCES pratos(id) ON DELETE CASCADE,
+      insumo_id  INTEGER NOT NULL REFERENCES estoque_insumos(id) ON DELETE CASCADE,
+      quantidade REAL NOT NULL,
+      UNIQUE(prato_id, insumo_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS estoque_movimentos (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      insumo_id     INTEGER NOT NULL REFERENCES estoque_insumos(id),
+      tipo          TEXT NOT NULL,
+      origem        TEXT,
+      referencia_id INTEGER,
+      quantidade    REAL NOT NULL,
+      custo_unit    REAL,
+      observacao    TEXT,
+      admin_id      INTEGER REFERENCES admins(id),
+      criado_em     TEXT DEFAULT (datetime('now','localtime'))
+    );
+
+    CREATE TABLE IF NOT EXISTS caixas (
+      id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+      status                TEXT DEFAULT 'aberto',
+      saldo_inicial         REAL NOT NULL DEFAULT 0,
+      saldo_sistema         REAL NOT NULL DEFAULT 0,
+      saldo_final_informado REAL,
+      diferenca             REAL DEFAULT 0,
+      observacao_abertura   TEXT,
+      observacao_fechamento TEXT,
+      aberto_em             TEXT DEFAULT (datetime('now','localtime')),
+      fechado_em            TEXT,
+      admin_abertura_id     INTEGER REFERENCES admins(id),
+      admin_fechamento_id   INTEGER REFERENCES admins(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS caixa_lancamentos (
+      id             INTEGER PRIMARY KEY AUTOINCREMENT,
+      caixa_id       INTEGER NOT NULL REFERENCES caixas(id),
+      tipo           TEXT NOT NULL,
+      categoria      TEXT,
+      descricao      TEXT,
+      forma_pagamento TEXT,
+      valor          REAL NOT NULL,
+      pedido_id      INTEGER REFERENCES pedidos(id),
+      admin_id       INTEGER REFERENCES admins(id),
+      criado_em      TEXT DEFAULT (datetime('now','localtime'))
+    );
+
+    CREATE TABLE IF NOT EXISTS fiscal_config (
+      id                INTEGER PRIMARY KEY CHECK (id = 1),
+      razao_social      TEXT,
+      cnpj              TEXT,
+      regime_tributario TEXT DEFAULT 'Simples Nacional',
+      aliquota_estimada REAL DEFAULT 6,
+      ambiente          TEXT DEFAULT 'gerencial',
+      atualizado_em     TEXT DEFAULT (datetime('now','localtime'))
+    );
+
+    CREATE TABLE IF NOT EXISTS fiscal_lancamentos (
+      id             INTEGER PRIMARY KEY AUTOINCREMENT,
+      pedido_id      INTEGER UNIQUE REFERENCES pedidos(id),
+      caixa_id       INTEGER REFERENCES caixas(id),
+      documento_tipo TEXT DEFAULT 'gerencial',
+      documento_numero TEXT,
+      situacao       TEXT DEFAULT 'registrado',
+      base_calculo   REAL NOT NULL,
+      aliquota       REAL NOT NULL,
+      valor_imposto  REAL NOT NULL,
+      valor_liquido  REAL NOT NULL,
+      observacao     TEXT,
+      criado_em      TEXT DEFAULT (datetime('now','localtime'))
+    );
   `);
+
+  ensureColumn('pedidos', 'caixa_id', 'INTEGER REFERENCES caixas(id)');
+  ensureColumn('pedidos', 'estoque_processado', 'INTEGER NOT NULL DEFAULT 0');
+  ensureColumn('pedidos', 'caixa_lancado', 'INTEGER NOT NULL DEFAULT 0');
+  ensureColumn('pedidos', 'fiscal_lancado', 'INTEGER NOT NULL DEFAULT 0');
 
   seed();
   backfillPhotos();
+  seedOperacao();
 }
 
 function ensureUploadsDir() {
   if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
+
+function ensureColumn(table, columnName, definition) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all();
+  if (!cols.some((col) => col.name === columnName)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${columnName} ${definition}`);
+  }
 }
 
 function seed() {
@@ -219,6 +462,40 @@ function backfillPhotos() {
   });
 
   applyPhotos();
+}
+
+function seedOperacao() {
+  const insertInsumo = db.prepare(`
+    INSERT OR IGNORE INTO estoque_insumos (nome, unidade, categoria, estoque_atual, estoque_minimo, custo_medio)
+    VALUES (@nome, @unidade, @categoria, @estoque_atual, @estoque_minimo, @custo_medio)
+  `);
+
+  const upsertFicha = db.prepare(`
+    INSERT INTO fichas_tecnicas (prato_id, insumo_id, quantidade)
+    VALUES (?, ?, ?)
+    ON CONFLICT(prato_id, insumo_id) DO UPDATE SET quantidade = excluded.quantidade
+  `);
+
+  const tx = db.transaction(() => {
+    DEFAULT_INSUMOS.forEach((insumo) => insertInsumo.run(insumo));
+
+    Object.entries(DEFAULT_FICHAS).forEach(([nomePrato, itens]) => {
+      const prato = db.prepare('SELECT id FROM pratos WHERE nome = ?').get(nomePrato);
+      if (!prato) return;
+      itens.forEach((item) => {
+        const insumo = db.prepare('SELECT id FROM estoque_insumos WHERE nome = ?').get(item.insumo);
+        if (!insumo) return;
+        upsertFicha.run(prato.id, insumo.id, item.quantidade);
+      });
+    });
+
+    db.prepare(`
+      INSERT OR IGNORE INTO fiscal_config (id, razao_social, cnpj, regime_tributario, aliquota_estimada, ambiente)
+      VALUES (1, 'Amaro Cafe', '', 'Simples Nacional', 6, 'gerencial')
+    `).run();
+  });
+
+  tx();
 }
 
 module.exports = { db, init };
